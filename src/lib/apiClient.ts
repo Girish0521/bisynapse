@@ -86,14 +86,82 @@ export async function fetchHallmarking(huid?: string) {
   return res.json();
 }
 
-// ─── Laboratories ──────────────────────────────────────────
-export async function fetchLabs(params?: { state?: string; city?: string; standard?: string; query?: string }) {
-  const qs = params
-    ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => !!v) as [string, string][]).toString()
-    : '';
-  const res = await fetch(endpoint(`/api/labs${qs}`));
-  if (!res.ok) throw new Error(`Labs API error: ${res.status}`);
-  return res.json();
+// ─── Laboratories / BIS LIMS Search (With Timeout & Controlled Failure Detection) ──────
+export interface LimsSearchResponse {
+  success: boolean;
+  source: string;
+  status: 'AVAILABLE' | 'SOURCE_UNAVAILABLE' | 'NO_RESULTS' | 'TIMEOUT' | 'ERROR';
+  retrievedAt?: string;
+  totalResults?: number;
+  message?: string;
+  officialUrl: string;
+  searchUrl: string;
+  results?: any[];
+  disclaimer?: string;
+}
+
+export async function fetchLabs(params?: {
+  state?: string;
+  city?: string;
+  standard?: string;
+  query?: string;
+  simulateFailure?: boolean;
+  demo?: boolean;
+}): Promise<LimsSearchResponse> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000); // 12-second timeout
+
+  try {
+    const queryMap: Record<string, string> = {};
+    if (params?.state) queryMap.state = params.state;
+    if (params?.city) queryMap.city = params.city;
+    if (params?.standard) queryMap.standard = params.standard;
+    if (params?.query) queryMap.query = params.query;
+    if (params?.simulateFailure) queryMap.simulateFailure = 'true';
+    if (params?.demo) queryMap.demo = 'true';
+
+    const qs = '?' + new URLSearchParams(queryMap).toString();
+    const res = await fetch(endpoint(`/api/lims/search${qs}`), {
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      return {
+        success: false,
+        source: 'Official BIS LIMS',
+        status: 'SOURCE_UNAVAILABLE',
+        message: 'BIS LIMS is temporarily unavailable.',
+        officialUrl: 'https://lims.bis.gov.in/',
+        searchUrl: 'https://lims.bis.gov.in/home/search_labs/',
+      };
+    }
+
+    const data = await res.json();
+    return {
+      success: Boolean(data.success !== false),
+      source: data.source || 'Official BIS LIMS',
+      status: data.status || (data.results && data.results.length > 0 ? 'AVAILABLE' : 'NO_RESULTS'),
+      retrievedAt: data.retrievedAt || new Date().toISOString(),
+      totalResults: data.totalResults || (data.results ? data.results.length : 0),
+      message: data.message,
+      officialUrl: data.officialUrl || 'https://lims.bis.gov.in/',
+      searchUrl: data.searchUrl || 'https://lims.bis.gov.in/home/search_labs/',
+      results: data.results || data.labs || [],
+      disclaimer: data.disclaimer,
+    };
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    return {
+      success: false,
+      source: 'Official BIS LIMS',
+      status: 'SOURCE_UNAVAILABLE',
+      message: 'BIS LIMS is temporarily unavailable.',
+      officialUrl: 'https://lims.bis.gov.in/',
+      searchUrl: 'https://lims.bis.gov.in/home/search_labs/',
+    };
+  }
 }
 
 // ─── Services & Certification ──────────────────────────────

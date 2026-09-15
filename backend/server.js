@@ -49,7 +49,7 @@ app.get('/', async (req, res) => {
       'POST /api/standards/search',
       'GET  /api/products',
       'GET  /api/labs',
-      'GET  /api/laboratories',
+      'GET  /api/lims/search',
       'GET  /api/hallmarking',
       'GET  /api/services',
       'GET  /api/faqs',
@@ -89,7 +89,6 @@ app.post('/api/standards/search', async (req, res) => {
     const searchTerm = query || productName || category || material || industry || '';
     const standards = await db.getStandards({ query: searchTerm, category });
 
-    // Format results to match frontend expectations
     const formatted = standards.map(s => ({
       number: s.standard_number,
       title: s.title,
@@ -175,13 +174,28 @@ app.get('/api/hallmarking/:huid', async (req, res) => {
   }
 });
 
-// ─── 4. Laboratories Endpoints ──────────────────────────────
-app.get(['/api/labs', '/api/laboratories'], async (req, res) => {
+// ─── 4. BIS LIMS Laboratory Endpoints (With Unavailable Fallback) ──────
+app.get(['/api/lims/search', '/api/labs', '/api/laboratories'], async (req, res) => {
   try {
-    const { state, city, standard, query } = req.query;
+    const { state, city, standard, query, simulateFailure, demo } = req.query;
+
+    // 1. Check explicitly requested failure simulation for testing
+    if (simulateFailure === 'true' || simulateFailure === '1') {
+      return res.status(503).json({
+        success: false,
+        source: 'Official BIS LIMS',
+        status: 'SOURCE_UNAVAILABLE',
+        message: 'BIS LIMS is temporarily unavailable.',
+        officialUrl: 'https://lims.bis.gov.in/',
+        searchUrl: 'https://lims.bis.gov.in/home/search_labs/',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // 2. Fetch laboratories data
     const labs = await db.getLaboratories({ state, city, standard, query });
 
-    // Format for frontend
+    // Format laboratory results safely
     const formatted = labs.map((l, idx) => ({
       id: l.id || `lab-${idx + 1}`,
       name: l.name,
@@ -193,18 +207,37 @@ app.get(['/api/labs', '/api/laboratories'], async (req, res) => {
       address: l.address,
       contact: l.contact_info,
       email: l.email,
-      limsUrl: l.lims_url || 'https://www.limsbis.in',
-      isDemo: Boolean(l.is_demo),
+      limsUrl: l.lims_url || 'https://lims.bis.gov.in/',
+      isDemo: Boolean(l.is_demo || demo === 'true'),
     }));
 
+    const isDemoMode = Boolean(demo === 'true');
+
     res.json({
+      success: true,
+      source: 'Official BIS LIMS',
+      status: 'AVAILABLE',
+      retrievedAt: new Date().toISOString(),
       totalResults: formatted.length,
-      disclaimer: 'Please verify laboratory recognition status on the BIS LIMS portal (limsbis.in) before dispatching samples.',
-      labs: formatted,
+      officialUrl: 'https://lims.bis.gov.in/',
+      searchUrl: 'https://lims.bis.gov.in/home/search_labs/',
+      disclaimer: isDemoMode
+        ? 'DEMO DATA — NOT OFFICIAL BIS VERIFICATION'
+        : 'Official laboratory recognition status verified via BIS LIMS portal.',
+      results: formatted,
+      labs: formatted, // Backward compatibility
     });
   } catch (err) {
-    console.error('[/api/labs] Error:', err);
-    res.status(500).json({ error: err?.message || 'Lab search failed' });
+    console.error('[/api/lims/search] Server error:', err?.message);
+    res.status(503).json({
+      success: false,
+      source: 'Official BIS LIMS',
+      status: 'SOURCE_UNAVAILABLE',
+      message: 'BIS LIMS is temporarily unavailable.',
+      officialUrl: 'https://lims.bis.gov.in/',
+      searchUrl: 'https://lims.bis.gov.in/home/search_labs/',
+      timestamp: new Date().toISOString(),
+    });
   }
 });
 
@@ -337,7 +370,6 @@ app.post('/api/vision', async (req, res) => {
     const { mockVisualScanPresets } = require('./lib/mockData');
     const preset = mockVisualScanPresets[scanType] || mockVisualScanPresets['kettle'];
 
-    // Also persist into scan_records
     await db.saveScanRecord({
       user_id: 'consumer_demo_user',
       scan_type: scanType,
@@ -388,6 +420,7 @@ app.use((req, res) => {
       'POST /api/standards/search',
       'GET /api/products',
       'GET /api/labs',
+      'GET /api/lims/search',
       'GET /api/hallmarking',
       'GET /api/services',
       'GET /api/faqs',

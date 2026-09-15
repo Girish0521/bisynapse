@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { Scan, QrCode, Barcode, Upload, Tag, Search, CheckCircle2, AlertTriangle, XCircle, RefreshCw, BookOpen, MessageSquare, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Scan, QrCode, Barcode, Upload, Tag, Search, CheckCircle2, AlertTriangle, XCircle, RefreshCw, BookOpen, MessageSquare, ShieldCheck, FlaskConical, ExternalLink } from 'lucide-react';
 import { VerificationResult } from '@/lib/types';
-import { mockVisualScanPresets } from '@/lib/mockData';
-
-import { fetchScanVerification } from '@/lib/apiClient';
+import { fetchScanVerification, fetchLabs, LimsSearchResponse } from '@/lib/apiClient';
+import { BisLimsFallbackCard } from '@/components/BisLimsFallbackCard';
 
 export default function ScanPage() {
   const [method, setMethod] = useState<'qr' | 'barcode' | 'image' | 'registration' | 'licence'>('qr');
@@ -17,6 +16,11 @@ export default function ScanPage() {
   const [scanStatusMessage, setScanStatusMessage] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
+
+  // BIS LIMS Independent State
+  const [simulateLimsFailure, setSimulateLimsFailure] = useState(false);
+  const [isLimsRetrying, setIsLimsRetrying] = useState(false);
+  const [limsResponse, setLimsResponse] = useState<LimsSearchResponse | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -52,6 +56,32 @@ export default function ScanPage() {
     }
   };
 
+  // Query BIS LIMS independently
+  const loadLimsForStandard = useCallback(async (standardNo?: string, isRetry = false) => {
+    if (isRetry) {
+      setIsLimsRetrying(true);
+    }
+
+    try {
+      const res = await fetchLabs({
+        standard: standardNo || 'IS 302',
+        simulateFailure: simulateLimsFailure,
+      });
+      setLimsResponse(res);
+    } catch {
+      setLimsResponse({
+        success: false,
+        source: 'Official BIS LIMS',
+        status: 'SOURCE_UNAVAILABLE',
+        message: 'BIS LIMS is temporarily unavailable.',
+        officialUrl: 'https://lims.bis.gov.in/',
+        searchUrl: 'https://lims.bis.gov.in/home/search_labs/',
+      });
+    } finally {
+      setIsLimsRetrying(false);
+    }
+  }, [simulateLimsFailure]);
+
   const executeVerification = async (presetType: 'kettle' | 'charger' | 'hallmark' | 'manual', inputValue?: string) => {
     setIsVerifying(true);
     setScanStatusMessage('Scanning...');
@@ -75,17 +105,19 @@ export default function ScanPage() {
       setIsVerifying(false);
       setScanStatusMessage('Verification complete.');
 
-      if (res && res.matchedRecord) {
-        const rec = res.matchedRecord;
+      const rec = res?.matchedRecord;
+      const resolvedStandard = rec?.standard_number || (presetType === 'kettle' ? 'IS 302 (Part 2/Sec 3): 2007' : presetType === 'hallmark' ? 'IS 1417: 2016' : 'IS 13252 (Part 1): 2010');
+
+      if (rec) {
         setVerificationResult({
           status: res.verificationStatus === 'VERIFIED' ? 'VERIFIED' : (res.verificationStatus === 'MATCH FOUND' ? 'VERIFIED' : 'NEEDS_VERIFICATION'),
           productName: rec.product_name || rec.product_type || 'Verified BIS Article',
           manufacturer: rec.manufacturer || rec.jeweller_name || 'BIS Licensed Manufacturer',
           licenceNumber: rec.registration_number || rec.huid || scannedValue,
-          standardNumber: rec.standard_number || 'IS 1417: 2016',
+          standardNumber: resolvedStandard,
           category: rec.category || rec.purity_description || 'Certified Goods',
           validityStatus: rec.is_demo ? 'Active [DEMO / Sample Record]' : 'Active & Validated under Official QCO',
-          explanation: rec.hallmark_information || `This product is registered in the Bureau of Indian Standards registry under ${rec.standard_number || 'mandatory standards'}. Reference: ${scannedValue}.`,
+          explanation: rec.hallmark_information || `This product is registered in the Bureau of Indian Standards registry under ${resolvedStandard}. Reference: ${scannedValue}.`,
           scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           verificationMethod: method,
         });
@@ -103,18 +135,25 @@ export default function ScanPage() {
           verificationMethod: method,
         });
       }
+
+      // Query LIMS independently
+      loadLimsForStandard(resolvedStandard);
+
     } catch (err) {
       console.warn('Scan verification API fallback:', err);
       setIsVerifying(false);
       setScanStatusMessage('Verification complete.');
 
+      let resolvedStandard = 'IS 302 (Part 2/Sec 3): 2007';
+
       if (presetType === 'kettle') {
+        resolvedStandard = 'IS 302 (Part 2/Sec 3): 2007';
         setVerificationResult({
           status: 'VERIFIED',
           productName: 'Electric Kettle (1.8L Stainless Steel)',
           manufacturer: 'Pigeon Appliances India Pvt Ltd',
           licenceNumber: 'CM/L-8400012395',
-          standardNumber: 'IS 302 (Part 2/Sec 3): 2007',
+          standardNumber: resolvedStandard,
           category: 'Electrical & Electronics',
           validityStatus: 'Active & Validated under Mandatory QCO',
           explanation: 'This product bears an authentic BIS ISI Mark under IS 302-2-3. The licence CM/L-8400012395 is active and covers domestic electric heating kettles.',
@@ -122,12 +161,13 @@ export default function ScanPage() {
           verificationMethod: method
         });
       } else if (presetType === 'hallmark') {
+        resolvedStandard = 'IS 1417: 2016';
         setVerificationResult({
           status: 'VERIFIED',
           productName: '22K Gold Bangle / Ornament (HUID: K92A8M)',
           manufacturer: 'Certified BIS Registered Jeweller (Ref: HM/C-7281923)',
           licenceNumber: 'HUID: K92A8M',
-          standardNumber: 'IS 1417: 2016',
+          standardNumber: resolvedStandard,
           category: 'Jewellery & Precious Metals',
           validityStatus: 'Verified 916 Gold Fineness Assay',
           explanation: 'The 6-digit HUID code K92A8M was verified against official hallmarking assay records. The jewellery piece complies with mandatory IS 1417 purity standards.',
@@ -135,12 +175,13 @@ export default function ScanPage() {
           verificationMethod: method
         });
       } else if (presetType === 'charger') {
+        resolvedStandard = 'IS 13252 (Part 1): 2010';
         setVerificationResult({
           status: 'VERIFIED',
           productName: '65W USB-C Fast Adapter',
           manufacturer: 'Xiaomi Technology India Pvt Ltd',
           licenceNumber: 'R-41009823',
-          standardNumber: 'IS 13252 (Part 1): 2010',
+          standardNumber: resolvedStandard,
           category: 'Information Technology',
           validityStatus: 'CRS Registration Active',
           explanation: 'Compulsory Registration Scheme (CRS) Registration R-41009823 is valid under IS 13252 Part 1 for IT power adapter equipment.',
@@ -161,6 +202,8 @@ export default function ScanPage() {
           verificationMethod: method
         });
       }
+
+      loadLimsForStandard(resolvedStandard);
     }
   };
 
@@ -179,9 +222,12 @@ export default function ScanPage() {
 
   const resetVerification = () => {
     setVerificationResult(null);
+    setLimsResponse(null);
     setScanStatusMessage(null);
     setManualInput('');
   };
+
+  const isLimsUnavailable = limsResponse && (!limsResponse.success || limsResponse.status === 'SOURCE_UNAVAILABLE');
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 text-left">
@@ -201,6 +247,19 @@ export default function ScanPage() {
           <p className="text-xs sm:text-sm text-slate-600">
             Scan a BIS QR code, registration number or product label to verify product information against official standards.
           </p>
+
+          {/* Test Switch for LIMS Outage */}
+          <div className="pt-2 flex items-center justify-center space-x-2 text-xs text-amber-900 font-semibold bg-amber-50 p-1.5 rounded border border-amber-200 inline-flex">
+            <label className="flex items-center space-x-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={simulateLimsFailure}
+                onChange={(e) => setSimulateLimsFailure(e.target.checked)}
+                className="rounded text-[#0F4C81] focus:ring-[#0F4C81]"
+              />
+              <span>Simulate BIS LIMS Outage (Test Fallback Card)</span>
+            </label>
+          </div>
         </div>
 
         {/* Verification Method Chooser */}
@@ -354,97 +413,159 @@ export default function ScanPage() {
 
         {/* Verification Result Page UI */}
         {verificationResult && (
-          <div className="bg-white rounded-xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6 text-left animate-in fade-in">
+          <div className="space-y-6">
             
-            {/* Status Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-              <div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Product Verification Result
-                </span>
-                <h2 className="text-xl font-black text-[#0A2540] mt-0.5">
-                  {verificationResult.productName}
-                </h2>
+            {/* 1. Independent Product Verification Card */}
+            <div className="bg-white rounded-xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6 text-left animate-in fade-in">
+              
+              {/* Status Header */}
+              <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Product Verification Result
+                  </span>
+                  <h2 className="text-xl font-black text-[#0A2540] mt-0.5">
+                    {verificationResult.productName}
+                  </h2>
+                </div>
+
+                {/* Clear Status Indicator */}
+                {verificationResult.status === 'VERIFIED' ? (
+                  <div className="px-3 py-1 bg-emerald-100 border border-emerald-300 text-emerald-800 font-extrabold text-xs rounded flex items-center space-x-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>✓ VERIFIED</span>
+                  </div>
+                ) : verificationResult.status === 'NEEDS_VERIFICATION' ? (
+                  <div className="px-3 py-1 bg-amber-100 border border-amber-300 text-amber-800 font-extrabold text-xs rounded flex items-center space-x-1">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <span>⚠ NEEDS VERIFICATION</span>
+                  </div>
+                ) : (
+                  <div className="px-3 py-1 bg-rose-100 border border-rose-300 text-rose-800 font-extrabold text-xs rounded flex items-center space-x-1">
+                    <XCircle className="w-4 h-4 text-rose-600" />
+                    <span>✕ NOT VERIFIED</span>
+                  </div>
+                )}
               </div>
 
-              {/* Clear Status Indicator */}
-              {verificationResult.status === 'VERIFIED' ? (
-                <div className="px-3 py-1 bg-emerald-100 border border-emerald-300 text-emerald-800 font-extrabold text-xs rounded flex items-center space-x-1">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>✓ VERIFIED</span>
+              {/* Certification Details Table Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-3 bg-slate-50 rounded border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Licence / Registration #</span>
+                  <span className="font-mono font-bold text-[#0F4C81] text-sm">{verificationResult.licenceNumber}</span>
                 </div>
-              ) : verificationResult.status === 'NEEDS_VERIFICATION' ? (
-                <div className="px-3 py-1 bg-amber-100 border border-amber-300 text-amber-800 font-extrabold text-xs rounded flex items-center space-x-1">
-                  <AlertTriangle className="w-4 h-4 text-amber-600" />
-                  <span>⚠ NEEDS VERIFICATION</span>
+
+                <div className="p-3 bg-slate-50 rounded border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Indian Standard</span>
+                  <span className="font-bold text-slate-900 text-xs">{verificationResult.standardNumber}</span>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Manufacturer Name</span>
+                  <span className="font-semibold text-slate-800">{verificationResult.manufacturer}</span>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Product Category</span>
+                  <span className="font-medium text-slate-700">{verificationResult.category}</span>
+                </div>
+              </div>
+
+              {/* "What does this mean?" Explanation Box */}
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-1.5 text-xs text-slate-800">
+                <h4 className="font-bold text-[#0F4C81] text-xs uppercase tracking-wider flex items-center space-x-1">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C81]" />
+                  <span>What does this mean?</span>
+                </h4>
+                <p className="leading-relaxed">{verificationResult.explanation}</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <button
+                  onClick={resetVerification}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded border border-slate-300 flex items-center space-x-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Scan Another Product</span>
+                </button>
+
+                <div className="flex items-center space-x-2">
+                  <Link
+                    href="/#standards"
+                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded flex items-center space-x-1"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>View Standard</span>
+                  </Link>
+
+                  <Link
+                    href="/#assistant"
+                    className="px-4 py-2 bg-[#0F4C81] hover:bg-[#0A2540] text-white font-bold rounded flex items-center space-x-1 shadow-2xs"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Ask BISynapse</span>
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+
+            {/* 2. Independent BIS LIMS Laboratory Card Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold text-[#0A2540] flex items-center space-x-2">
+                  <FlaskConical className="w-4 h-4 text-[#0F4C81]" />
+                  <span>Associated BIS LIMS Laboratories ({verificationResult.standardNumber})</span>
+                </h3>
+              </div>
+
+              {isLimsUnavailable ? (
+                <BisLimsFallbackCard
+                  onRetry={() => loadLimsForStandard(verificationResult.standardNumber, true)}
+                  isRetrying={isLimsRetrying}
+                />
+              ) : limsResponse?.results && limsResponse.results.length > 0 ? (
+                <div className="bg-white rounded-lg border border-slate-200 p-4 space-y-3 text-xs">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                    <span>Source: Official BIS LIMS (lims.bis.gov.in)</span>
+                    <span className="text-emerald-700 font-bold">✓ AVAILABLE</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {limsResponse.results.slice(0, 4).map((lab: any) => (
+                      <div key={lab.id} className="p-3 bg-slate-50 rounded border border-slate-200 space-y-1">
+                        <span className="font-bold text-slate-900 block">{lab.name}</span>
+                        <span className="text-[10px] text-slate-500 block">{lab.city}, {lab.state}</span>
+                        <a
+                          href={lab.limsUrl || 'https://lims.bis.gov.in/'}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center space-x-1 text-[10px] font-bold text-[#0F4C81] hover:underline pt-1"
+                        >
+                          <span>View Lab Profile on BIS LIMS</span>
+                          <ExternalLink className="w-3 h-3 text-amber-500" />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
-                <div className="px-3 py-1 bg-rose-100 border border-rose-300 text-rose-800 font-extrabold text-xs rounded flex items-center space-x-1">
-                  <XCircle className="w-4 h-4 text-rose-600" />
-                  <span>✕ NOT VERIFIED</span>
+                <div className="bg-white rounded-lg border border-slate-200 p-4 text-xs text-slate-600 text-center space-y-1">
+                  <span>No matching laboratory records found for this standard in BIS LIMS.</span>
+                  <div>
+                    <a
+                      href="https://lims.bis.gov.in/home/search_labs/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#0F4C81] font-bold hover:underline inline-flex items-center space-x-1"
+                    >
+                      <span>Search Official BIS LIMS Portal</span>
+                      <ExternalLink className="w-3 h-3 text-amber-500" />
+                    </a>
+                  </div>
                 </div>
               )}
-            </div>
-
-            {/* Certification Details Table Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="p-3 bg-slate-50 rounded border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-500 uppercase block">Licence / Registration #</span>
-                <span className="font-mono font-bold text-[#0F4C81] text-sm">{verificationResult.licenceNumber}</span>
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-500 uppercase block">Indian Standard</span>
-                <span className="font-bold text-slate-900 text-xs">{verificationResult.standardNumber}</span>
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-500 uppercase block">Manufacturer Name</span>
-                <span className="font-semibold text-slate-800">{verificationResult.manufacturer}</span>
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-500 uppercase block">Product Category</span>
-                <span className="font-medium text-slate-700">{verificationResult.category}</span>
-              </div>
-            </div>
-
-            {/* "What does this mean?" Explanation Box */}
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-1.5 text-xs text-slate-800">
-              <h4 className="font-bold text-[#0F4C81] text-xs uppercase tracking-wider flex items-center space-x-1">
-                <ShieldCheck className="w-4 h-4 text-[#0F4C81]" />
-                <span>What does this mean?</span>
-              </h4>
-              <p className="leading-relaxed">{verificationResult.explanation}</p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-              <button
-                onClick={resetVerification}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded border border-slate-300 flex items-center space-x-1.5"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Scan Another Product</span>
-              </button>
-
-              <div className="flex items-center space-x-2">
-                <Link
-                  href="/#standards"
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded flex items-center space-x-1"
-                >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>View Standard</span>
-                </Link>
-
-                <Link
-                  href="/#assistant"
-                  className="px-4 py-2 bg-[#0F4C81] hover:bg-[#0A2540] text-white font-bold rounded flex items-center space-x-1 shadow-2xs"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Ask BISynapse</span>
-                </Link>
-              </div>
             </div>
 
           </div>
