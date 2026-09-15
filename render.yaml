@@ -1,0 +1,17 @@
+# Render service configuration for BISynapse Backend
+services:
+  - type: web
+    name: bisynapse-api
+    runtime: node
+    region: singapore   # Closest to India — change to oregon/frankfurt if needed
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        fromGroup: bisynapse-env   # Set this in Render dashboard

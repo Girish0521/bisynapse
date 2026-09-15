@@ -1,0 +1,267 @@
+import { StandardResult, LabFacility, VisualAnalysisResult } from './types';
+
+export const mockStandards: StandardResult[] = [
+  {
+    number: 'IS 302 (Part 2/Sec 3): 2007',
+    title: 'Safety of Household and Similar Electrical Appliances - Electric Kettles',
+    relevance: 0.98,
+    whyApplies: 'Applies specifically to electric kettles, liquid heaters and boiling pots operating under 250V AC single phase.',
+    scheme: 'BIS Product Certification Scheme (ISI Mark - Scheme I)',
+    status: 'Mandatory (QCO)',
+    category: 'Electrical & Electronics',
+    description: 'Specifies safety requirements, insulation resistance, thermal cutoff limits, earthing provisions and flame containment for electric kettles intended for domestic and commercial heating.',
+    keyRequirements: [
+      'High-voltage insulation breakdown test at 1500V',
+      'Automatic thermal cutoff operation upon dry boiling',
+      'IPX0 to IPX4 moisture protection depending on casing design',
+      'Mandatory double-insulated internal wiring with heat-resistant sleeving'
+    ],
+    testingRequired: [
+      'Dielectric Strength Test',
+      'Dry-Heating Thermal Cutout Test',
+      'Leakage Current under Operational Temperature',
+      'Mechanical Endurance (10,000 cycles switch operation)'
+    ],
+    bisPortalUrl: 'https://www.bis.gov.in/index.php/standards/find-a-standard/'
+  },
+  {
+    number: 'IS 13252 (Part 1): 2010',
+    title: 'Information Technology Equipment - Safety - General Requirements',
+    relevance: 0.94,
+    whyApplies: 'Mandatory for IT products, laptops, power adapters, monitors, mobile phone chargers, and server equipment.',
+    scheme: 'Compulsory Registration Scheme (CRS - Scheme II)',
+    status: 'Mandatory (QCO)',
+    category: 'Information Technology',
+    description: 'Covers electrical safety, thermal stability, acoustic shock protection, and electromagnetic shielding for computer hardware and peripherals.',
+    keyRequirements: [
+      'Creepage distance and clearance compliance',
+      'Flammability class V-0 or V-1 for outer enclosures',
+      'Over-voltage transient protection'
+    ],
+    testingRequired: [
+      'Input Power Measurement',
+      'Heating Test under Max Rating',
+      'Ball Pressure Test for Plastic Enclosures'
+    ],
+    bisPortalUrl: 'https://www.crsbis.in/BIS/'
+  },
+  {
+    number: 'IS 1417: 2016',
+    title: 'Gold and Gold Alloys, Jewellery/Artefacts - Fineness and Marking - Specification',
+    relevance: 0.99,
+    whyApplies: 'Mandatory governing standard for all gold jewellery and gold artefacts sold in India by registered jewellers.',
+    scheme: 'BIS Hallmarking Scheme (Scheme IV)',
+    status: 'Mandatory (QCO)',
+    category: 'Jewellery & Precious Metals',
+    description: 'Defines 6 purity grades for gold jewellery (14K, 18K, 20K, 22K, 23K, 24K) and mandates laser engraving of BIS Hallmark, purity mark, and 6-digit HUID code.',
+    keyRequirements: [
+      'Fire assay testing of gold purity at BIS-recognized Assaying & Hallmarking Centres (AHCs)',
+      '6-character alphanumeric HUID laser etching on each jewellery piece',
+      'Mandatory registration of jewellers on BIS ManakOnline Portal'
+    ],
+    testingRequired: [
+      'Fire Assay (Cupellation Method - IS 1418)',
+      'X-ray Fluorescence (XRF) Non-Destructive Screening'
+    ],
+    bisPortalUrl: 'https://www.bis.gov.in/hallmarking-2/'
+  },
+  {
+    number: 'IS 14286 / IEC 61215: 2010',
+    title: 'Crystalline Silicon Terrestrial Photovoltaic (PV) Modules - Design Qualification & Type Approval',
+    relevance: 0.92,
+    whyApplies: 'Mandatory for solar PV modules, solar street lights, and grid-connected inverter components under MNRE Quality Control Orders.',
+    scheme: 'Compulsory Registration Scheme (CRS - Scheme II)',
+    status: 'Mandatory (QCO)',
+    category: 'Solar & Renewable Energy',
+    description: 'Ensures long-term performance, mechanical endurance against high wind pressure, and electrical safety under harsh Indian ambient temperatures.',
+    keyRequirements: [
+      'Thermal cycling test (-40°C to +85°C)',
+      'Damp heat test (85°C / 85% RH for 1000 hours)',
+      'Hot-spot endurance and mechanical load test (2400 Pa)'
+    ],
+    testingRequired: [
+      'Visual Inspection & IV Curve Characterization',
+      'Insulation & Wet Leakage Test',
+      'Hail Impact & Mechanical Load Test'
+    ],
+    bisPortalUrl: 'https://www.crsbis.in/BIS/'
+  },
+  {
+    number: 'IS 15410: 2003',
+    title: 'Packaged Natural Mineral Water - Specification',
+    relevance: 0.91,
+    whyApplies: 'Mandatory for bottling plants, commercial mineral water suppliers, and packaged beverage processors.',
+    scheme: 'BIS Product Certification Scheme (ISI Mark)',
+    status: 'Mandatory (QCO)',
+    category: 'Food & Agriculture',
+    description: 'Mandates microbiological purity, mineral concentration tolerances, heavy metal limits, and food-grade PET container standards.',
+    keyRequirements: [
+      'Zero E. coli, Coliforms, and Pseudomonas aeruginosa per 250ml',
+      'TDS range 150 to 700 mg/L',
+      'Food grade PET/glass packaging with tamper-evident caps'
+    ],
+    testingRequired: [
+      'Microbiological Assay',
+      'Heavy Metal ICP-MS Analysis (Pesticides & Arsenic)',
+      'Organoleptic & Chemical Purity Testing'
+    ],
+    bisPortalUrl: 'https://www.bis.gov.in/'
+  },
+  {
+    number: 'IS 1786: 2008',
+    title: 'High Strength Deformed Steel Bars and Wires for Concrete Reinforcement - Specification',
+    relevance: 0.89,
+    whyApplies: 'Mandatory for TMT rebar manufacturers, steel mills, and structural civil construction suppliers.',
+    scheme: 'BIS Product Certification Scheme (ISI Mark)',
+    status: 'Mandatory (QCO)',
+    category: 'Civil & Structural Engineering',
+    description: 'Covers Fe 415, Fe 500, Fe 550, Fe 600 grades for earthquake-resistant concrete reinforcement with controlled carbon content.',
+    keyRequirements: [
+      'Yield stress and ultimate tensile strength compliance',
+      'Mandatory bend and re-bend testing around mandrel',
+      'Elongation minimum 14.5% for Fe 500D seismic grade'
+    ],
+    testingRequired: [
+      'Tensile & Yield Stress Measurement',
+      'Bend & Re-bend Ductility Test',
+      'Chemical Spectrometry (Carbon, Sulphur, Phosphorus)'
+    ],
+    bisPortalUrl: 'https://www.bis.gov.in/'
+  }
+];
+
+export const mockLabs: LabFacility[] = [
+  {
+    id: 'lab-01',
+    name: 'Central Laboratory Sahibabad (BIS Operational Lab)',
+    state: 'Uttar Pradesh',
+    city: 'Sahibabad / Ghaziabad',
+    supportedStandards: ['IS 302-2-3', 'IS 13252', 'IS 694', 'IS 1786'],
+    productCategory: 'Electrical Appliances, Cables, Steel & IT Devices',
+    recognitionStatus: 'BIS Branch Lab',
+    address: 'Plot No. 20/9, Site IV, Industrial Area, Sahibabad, UP - 201010',
+    contact: '+91 120 2895100',
+    email: 'clsb-bis@gov.in',
+    limsUrl: 'https://www.limsbis.in'
+  },
+  {
+    id: 'lab-02',
+    name: 'National Test House (NTH Northern Region)',
+    state: 'Delhi NCR',
+    city: 'New Delhi',
+    supportedStandards: ['IS 302-2-3', 'IS 14286', 'IS 15410', 'IS 13252'],
+    productCategory: 'Electrical, Solar Photovoltaic, Water & Mechanical',
+    recognitionStatus: 'BIS Recognized',
+    address: 'Kamla Nehru Nagar, Raj Nagar, Ghaziabad, Delhi NCR',
+    contact: '+91 120 2783456',
+    email: 'nthnr-bis@gov.in',
+    limsUrl: 'https://www.limsbis.in'
+  },
+  {
+    id: 'lab-03',
+    name: 'Electrical Research and Development Association (ERDA)',
+    state: 'Gujarat',
+    city: 'Vadodara',
+    supportedStandards: ['IS 302-2-3', 'IS 1180', 'IS 2026', 'IS 14286'],
+    productCategory: 'Transformers, Switchgear, Household Appliances & Solar',
+    recognitionStatus: 'BIS Recognized',
+    address: 'ERDA Road, Makarpura Industrial Estate, Vadodara - 390010',
+    contact: '+91 265 2642942',
+    email: 'erda-lab@erda.org',
+    limsUrl: 'https://www.limsbis.in'
+  },
+  {
+    id: 'lab-04',
+    name: 'CPRI (Central Power Research Institute)',
+    state: 'Karnataka',
+    city: 'Bengaluru',
+    supportedStandards: ['IS 302-2-3', 'IS 694', 'IS 7098', 'IS 14286'],
+    productCategory: 'High Voltage Cables, Insulation, Motors & Appliances',
+    recognitionStatus: 'BIS Recognized',
+    address: 'Prof. Sir C.V. Raman Road, Sadashivanagar, Bengaluru - 560080',
+    contact: '+91 80 22072211',
+    email: 'cpri-testing@cpri.in',
+    limsUrl: 'https://www.limsbis.in'
+  },
+  {
+    id: 'lab-05',
+    name: 'IIT Madras Sophisticated Analytical Instrument Facility (SAIF)',
+    state: 'Tamil Nadu',
+    city: 'Chennai',
+    supportedStandards: ['IS 1417', 'IS 15410', 'IS 14286'],
+    productCategory: 'Precious Metals Assay, Chemical Analysis & Materials',
+    recognitionStatus: 'BIS Recognized',
+    address: 'IIT Madras Campus, Sardar Patel Road, Chennai - 600036',
+    contact: '+91 44 22574935',
+    email: 'saif-iitm@iitm.ac.in',
+    limsUrl: 'https://www.limsbis.in'
+  }
+];
+
+export const mockVisualScanPresets: Record<string, VisualAnalysisResult> = {
+  kettle: {
+    product: {
+      name: 'Electric Kettle (1.8L)',
+      category: 'Electrical Appliance',
+      brand: 'Pigeon Stainless',
+      model: 'EK-1800W'
+    },
+    detectedText: [
+      '230V AC - 50Hz - 1500W',
+      'ISI MARK: IS 302 (Part 2/Sec 3)',
+      'CM/L-8400012395',
+      'MADE IN INDIA'
+    ],
+    certification: {
+      bisMarkDetected: true,
+      licenceNumber: 'CM/L-8400012395',
+      standardNumber: 'IS 302 (Part 2/Sec 3): 2007',
+      qrCodeUrl: 'https://www.manakonline.in/verify/CML-8400012395'
+    },
+    confidence: 0.94,
+    requiresVerification: true,
+    rawSummary: 'Visual analysis confirmed an electric kettle heating appliance label displaying a validly structured ISI Standard Mark and licence number format.'
+  },
+  hallmark: {
+    product: {
+      name: '22K Gold Bangle / Ring',
+      category: 'Gold Jewellery',
+      brand: 'Certified Jewellers'
+    },
+    detectedText: [
+      'BIS LOGO (TRIANGLE MARK)',
+      'PURITY: 916 (22K Gold)',
+      'HUID: K92A8M'
+    ],
+    certification: {
+      bisMarkDetected: true,
+      huid: 'K92A8M',
+      standardNumber: 'IS 1417: 2016'
+    },
+    confidence: 0.96,
+    requiresVerification: true,
+    rawSummary: 'High-resolution macro scan detected 3 mandatory hallmark components: BIS Triangular Logo, 916 Fineness mark, and 6-digit unique HUID code K92A8M.'
+  },
+  charger: {
+    product: {
+      name: 'USB-C Fast Power Adapter 65W',
+      category: 'Information Technology / Mobile Accessory',
+      brand: 'Mi / Anker Type',
+      model: 'AD-65W-IN'
+    },
+    detectedText: [
+      'INPUT: 100-240V ~ 50/60Hz 1.5A',
+      'OUTPUT: 20V = 3.25A Max',
+      'CRS REG NO: R-41009823',
+      'IS 13252 (Part 1)'
+    ],
+    certification: {
+      bisMarkDetected: true,
+      licenceNumber: 'R-41009823',
+      standardNumber: 'IS 13252 (Part 1): 2010'
+    },
+    confidence: 0.92,
+    requiresVerification: true,
+    rawSummary: 'Detected Compulsory Registration Scheme (CRS) Registration Mark format (R-41009823) under IS 13252 for IT power supply equipment.'
+  }
+};
