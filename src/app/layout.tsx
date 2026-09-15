@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/authContext";
 
 const notoSans = Noto_Sans({
   variable: "--font-noto-sans",
@@ -20,8 +21,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${notoSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white">
-        {children}
+      <body className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 selection:bg-[#0F4C81] selection:text-white">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

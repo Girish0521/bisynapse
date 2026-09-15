@@ -5,8 +5,11 @@ import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Store, Scan, Search, Award, ShieldCheck, MessageSquare, ArrowRight, FileCheck } from 'lucide-react';
+import { AuthGuard } from '@/components/AuthGuard';
+import { useAuth } from '@/lib/authContext';
 
-export default function RetailerDashboard() {
+function RetailerDashboardContent() {
+  const { user, logout } = useAuth();
   const services = [
     { title: 'Verify Product', desc: 'Verify supplier stock & manufacturer licences', icon: ShieldCheck, href: '/scan' },
     { title: 'Scan Product', desc: 'Scan barcodes or ISI QR codes on incoming inventory', icon: Scan, href: '/scan' },
@@ -18,7 +21,7 @@ export default function RetailerDashboard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 text-left">
-      <Navbar currentLang="en" onLanguageChange={() => {}} activeRole="retailer" />
+      <Navbar currentLang="en" onLanguageChange={() => {}} activeRole="retailer" onLogout={logout} />
 
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
         
@@ -29,7 +32,7 @@ export default function RetailerDashboard() {
               <span>Retailer Compliance Hub</span>
             </div>
             <h1 className="text-2xl font-black text-white">
-              Welcome, Retailer
+              Welcome, {user?.name || 'Retailer'}
             </h1>
             <p className="text-xs text-slate-300">
               Verify supplier inventory compliance, check mandatory QCO listing, and access official BIS records.
@@ -81,5 +84,13 @@ export default function RetailerDashboard() {
 
       <Footer currentLang="en" onNavigate={() => {}} />
     </div>
+  );
+}
+
+export default function RetailerDashboard() {
+  return (
+    <AuthGuard allowedRole="retailer">
+      <RetailerDashboardContent />
+    </AuthGuard>
   );
 }

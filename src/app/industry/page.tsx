@@ -5,8 +5,11 @@ import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Building2, Search, Award, ShieldCheck, FlaskConical, MessageSquare, ArrowRight, Layers, DollarSign } from 'lucide-react';
+import { AuthGuard } from '@/components/AuthGuard';
+import { useAuth } from '@/lib/authContext';
 
-export default function IndustryDashboard() {
+function IndustryDashboardContent() {
+  const { user, logout } = useAuth();
   const services = [
     { title: 'Find Applicable Standards', desc: 'Identify Indian Standards for product engineering', icon: Search, href: '/#standards' },
     { title: 'Certification Guidance', desc: 'Step-by-step ManakOnline e-BIS application workflow', icon: Award, href: '/#certification' },
@@ -18,7 +21,7 @@ export default function IndustryDashboard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 text-left">
-      <Navbar currentLang="en" onLanguageChange={() => {}} activeRole="industry" />
+      <Navbar currentLang="en" onLanguageChange={() => {}} activeRole="industry" onLogout={logout} />
 
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
         
@@ -29,7 +32,7 @@ export default function IndustryDashboard() {
               <span>Industry & MSME Portal</span>
             </div>
             <h1 className="text-2xl font-black text-white">
-              Welcome, Industry / MSME
+              Welcome, {user?.name || 'Industry / MSME'}
             </h1>
             <p className="text-xs text-slate-300">
               Discover applicable standards, follow the 9-stage certification stepper, and claim MSME concessions.
@@ -92,5 +95,13 @@ export default function IndustryDashboard() {
 
       <Footer currentLang="en" onNavigate={() => {}} />
     </div>
+  );
+}
+
+export default function IndustryDashboard() {
+  return (
+    <AuthGuard allowedRole="industry">
+      <IndustryDashboardContent />
+    </AuthGuard>
   );
 }

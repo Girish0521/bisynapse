@@ -6,8 +6,11 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { UserCheck, Scan, Search, Award, Gem, MessageSquare, Flag, History, ArrowRight } from 'lucide-react';
 import { fetchHistory } from '@/lib/apiClient';
+import { AuthGuard } from '@/components/AuthGuard';
+import { useAuth } from '@/lib/authContext';
 
-export default function ConsumerDashboard() {
+function ConsumerDashboardContent() {
+  const { user, logout } = useAuth();
   const services = [
     { title: 'Scan & Verify Product', desc: 'Scan ISI mark or QR code on product label', icon: Scan, href: '/scan' },
     { title: 'Search BIS Standard', desc: 'Find IS standards matching products', icon: Search, href: '/#standards' },
@@ -25,7 +28,8 @@ export default function ConsumerDashboard() {
   useEffect(() => {
     async function loadHistory() {
       try {
-        const res = await fetchHistory('consumer_demo_user');
+        const userId = user?.id || 'consumer_demo_user';
+        const res = await fetchHistory(userId);
         if (res && res.recentScans && res.recentScans.length > 0) {
           const formatted = res.recentScans.slice(0, 6).map((s: any) => ({
             name: s.product_name || 'Scanned Article',
@@ -41,11 +45,11 @@ export default function ConsumerDashboard() {
       }
     }
     loadHistory();
-  }, []);
+  }, [user]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 text-left">
-      <Navbar currentLang="en" onLanguageChange={() => {}} activeRole="consumer" />
+      <Navbar currentLang="en" onLanguageChange={() => {}} activeRole="consumer" onLogout={logout} />
 
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
         
@@ -57,7 +61,7 @@ export default function ConsumerDashboard() {
               <span>Consumer Digital Hub</span>
             </div>
             <h1 className="text-2xl font-black text-white">
-              Welcome, Consumer
+              Welcome, {user?.name || 'Consumer'}
             </h1>
             <p className="text-xs text-slate-300">
               Verify products, check hallmarking authenticity, and protect your consumer quality rights.
@@ -135,5 +139,13 @@ export default function ConsumerDashboard() {
 
       <Footer currentLang="en" onNavigate={() => {}} />
     </div>
+  );
+}
+
+export default function ConsumerDashboard() {
+  return (
+    <AuthGuard allowedRole="consumer">
+      <ConsumerDashboardContent />
+    </AuthGuard>
   );
 }

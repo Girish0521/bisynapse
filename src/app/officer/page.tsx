@@ -4,9 +4,12 @@ import React from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { Shield, Scan, Search, FileText, BarChart3, Lock, CheckCircle2, ArrowRight, Eye, Database } from 'lucide-react';
+import { Shield, Scan, Search, FileText, BarChart3, Database, ArrowRight } from 'lucide-react';
+import { AuthGuard } from '@/components/AuthGuard';
+import { useAuth } from '@/lib/authContext';
 
-export default function OfficerDashboard() {
+function OfficerDashboardContent() {
+  const { user, logout } = useAuth();
   const services = [
     { title: 'Product Verification', desc: 'Perform high-speed CM/L & HUID verification', icon: Scan, href: '/scan' },
     { title: 'Certification Verification', desc: 'Inspect factory licence status and scope validity', icon: Shield, href: '/#certification' },
@@ -25,7 +28,7 @@ export default function OfficerDashboard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 text-left">
-      <Navbar currentLang="en" onLanguageChange={() => {}} activeRole="officer" />
+      <Navbar currentLang="en" onLanguageChange={() => {}} activeRole="officer" onLogout={logout} />
 
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
         
@@ -37,7 +40,7 @@ export default function OfficerDashboard() {
               <span>Government Officer Regulatory Oversight</span>
             </div>
             <h1 className="text-2xl font-black text-white">
-              Welcome, Government Officer
+              Welcome, {user?.name || 'Officer'}
             </h1>
             <p className="text-xs text-slate-300">
               Access high-density regulatory verification tools, market surveillance reports, and QCO analytics.
@@ -46,7 +49,7 @@ export default function OfficerDashboard() {
 
           <div className="flex items-center space-x-2 shrink-0">
             <span className="px-3 py-1 bg-slate-800 text-amber-400 font-mono text-xs font-bold rounded border border-slate-700">
-              OFFICER LEVEL-A
+              OFFICER LEVEL-A (AUTHORIZED)
             </span>
           </div>
         </div>
@@ -101,5 +104,13 @@ export default function OfficerDashboard() {
 
       <Footer currentLang="en" onNavigate={() => {}} />
     </div>
+  );
+}
+
+export default function OfficerDashboard() {
+  return (
+    <AuthGuard allowedRole="officer" requireOfficerAuth={true}>
+      <OfficerDashboardContent />
+    </AuthGuard>
   );
 }
