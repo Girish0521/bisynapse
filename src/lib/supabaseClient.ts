@@ -3,16 +3,21 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase: SupabaseClient | null =
-  supabaseUrl && supabaseAnonKey
-    ? createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-        },
-      })
-    : null;
+const isConfigured =
+  Boolean(supabaseUrl) &&
+  Boolean(supabaseAnonKey) &&
+  !supabaseUrl.includes('your-supabase-project-ref') &&
+  !supabaseAnonKey.includes('your_supabase_anon_key_here');
+
+export const supabase: SupabaseClient | null = isConfigured
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
+  : null;
 
 /**
  * Get current window origin safely for environment-aware OAuth redirect URLs
@@ -35,7 +40,7 @@ export async function signInWithGoogle(desiredRole?: string) {
   if (!supabase) {
     return {
       error: {
-        message: 'Supabase URL and Anon Key are not configured in your environment variables (NEXT_PUBLIC_SUPABASE_URL). Please add them to .env.local or Vercel settings.',
+        message: 'Supabase URL and Anon Key are missing in .env.local. Please paste your real NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY from Supabase Dashboard -> Project Settings -> API.',
         code: 'SUPABASE_NOT_CONFIGURED',
       },
       data: { url: null },
