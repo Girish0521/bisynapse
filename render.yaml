@@ -1,9 +1,19 @@
-# Render service configuration for BISynapse Backend
+# BISynapse — Render Blueprint Configuration
+# Deploy this as a Blueprint from the Render dashboard (New → Blueprint)
+# OR manually configure the service with the exact values commented below.
+#
+# ┌─────────────────────────────────────────┐
+# │  MANUAL RENDER DASHBOARD SETTINGS       │
+# │  Root Directory : backend               │
+# │  Build Command  : npm install           │
+# │  Start Command  : node server.js        │
+# └─────────────────────────────────────────┘
+
 services:
   - type: web
     name: bisynapse-api
     runtime: node
-    region: singapore   # Closest to India — change to oregon/frankfurt if needed
+    region: singapore
     plan: free
     rootDir: backend
     buildCommand: npm install
@@ -11,7 +21,5 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
       - key: FRONTEND_URL
-        fromGroup: bisynapse-env   # Set this in Render dashboard
+        value: ""   # Set to your Vercel URL, e.g. https://bisynapse.vercel.app
