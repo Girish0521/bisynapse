@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { UserCheck, Scan, Search, Award, Gem, MessageSquare, Flag, History, CheckCircle2, ArrowRight } from 'lucide-react';
+import { UserCheck, Scan, Search, Award, Gem, MessageSquare, Flag, History, ArrowRight } from 'lucide-react';
+import { fetchHistory } from '@/lib/apiClient';
 
 export default function ConsumerDashboard() {
   const services = [
@@ -16,10 +17,31 @@ export default function ConsumerDashboard() {
     { title: 'Report a Product', desc: 'Report fake ISI marks or sub-standard goods', icon: Flag, href: '/#consumer' }
   ];
 
-  const recentScans = [
+  const [scanHistory, setScanHistory] = useState<any[]>([
     { name: 'Stainless Steel Electric Kettle', standard: 'IS 302-2-3', licence: 'CM/L-8400012395', status: '✓ VERIFIED', time: 'Today 2:15 PM' },
     { name: '22K Gold Bangle (HUID: K92A8M)', standard: 'IS 1417:2016', licence: 'HM/C-7281923', status: '✓ VERIFIED', time: 'Yesterday' }
-  ];
+  ]);
+
+  useEffect(() => {
+    async function loadHistory() {
+      try {
+        const res = await fetchHistory('consumer_demo_user');
+        if (res && res.recentScans && res.recentScans.length > 0) {
+          const formatted = res.recentScans.slice(0, 6).map((s: any) => ({
+            name: s.product_name || 'Scanned Article',
+            standard: s.extracted_information?.standard || 'IS Verified',
+            licence: s.scanned_value || s.matched_record_id || 'CM/L-VERIFIED',
+            status: s.verification_status === 'VERIFIED' ? '✓ VERIFIED' : (s.verification_status === 'MATCH FOUND' ? '✓ MATCH FOUND' : '⚠ ' + s.verification_status),
+            time: s.created_at ? new Date(s.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent'
+          }));
+          setScanHistory(formatted);
+        }
+      } catch (err) {
+        console.warn('Consumer history load fallback:', err);
+      }
+    }
+    loadHistory();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 text-left">
@@ -92,7 +114,7 @@ export default function ConsumerDashboard() {
           </div>
 
           <div className="space-y-2">
-            {recentScans.map((scan, idx) => (
+            {scanHistory.map((scan, idx) => (
               <div key={idx} className="p-3 bg-slate-50 rounded border border-slate-200 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
                   <span className="font-bold text-slate-900 block">{scan.name}</span>

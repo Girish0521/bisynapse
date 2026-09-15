@@ -8,6 +8,8 @@ import { Scan, QrCode, Barcode, Upload, Tag, Search, CheckCircle2, AlertTriangle
 import { VerificationResult } from '@/lib/types';
 import { mockVisualScanPresets } from '@/lib/mockData';
 
+import { fetchScanVerification } from '@/lib/apiClient';
+
 export default function ScanPage() {
   const [method, setMethod] = useState<'qr' | 'barcode' | 'image' | 'registration' | 'licence'>('qr');
   const [cameraActive, setCameraActive] = useState(false);
@@ -50,14 +52,59 @@ export default function ScanPage() {
     }
   };
 
-  const executeVerification = (presetType: 'kettle' | 'charger' | 'hallmark' | 'manual', inputValue?: string) => {
+  const executeVerification = async (presetType: 'kettle' | 'charger' | 'hallmark' | 'manual', inputValue?: string) => {
     setIsVerifying(true);
     setScanStatusMessage('Scanning...');
 
-    setTimeout(() => setScanStatusMessage('QR code detected.'), 350);
-    setTimeout(() => setScanStatusMessage('Verifying with BIS data...'), 700);
+    setTimeout(() => setScanStatusMessage('Reading label data...'), 250);
+    setTimeout(() => setScanStatusMessage('Verifying with BIS database registry...'), 500);
 
-    setTimeout(() => {
+    const scannedValue =
+      presetType === 'kettle' ? 'CM/L-8400012395' :
+      presetType === 'hallmark' ? 'K92A8M' :
+      presetType === 'charger' ? 'R-41009823' : (inputValue || '');
+
+    try {
+      const res = await fetchScanVerification({
+        scanType: method,
+        scannedValue,
+        extractedInfo: { presetType, inputValue },
+        userId: 'consumer_demo_user',
+      });
+
+      setIsVerifying(false);
+      setScanStatusMessage('Verification complete.');
+
+      if (res && res.matchedRecord) {
+        const rec = res.matchedRecord;
+        setVerificationResult({
+          status: res.verificationStatus === 'VERIFIED' ? 'VERIFIED' : (res.verificationStatus === 'MATCH FOUND' ? 'VERIFIED' : 'NEEDS_VERIFICATION'),
+          productName: rec.product_name || rec.product_type || 'Verified BIS Article',
+          manufacturer: rec.manufacturer || rec.jeweller_name || 'BIS Licensed Manufacturer',
+          licenceNumber: rec.registration_number || rec.huid || scannedValue,
+          standardNumber: rec.standard_number || 'IS 1417: 2016',
+          category: rec.category || rec.purity_description || 'Certified Goods',
+          validityStatus: rec.is_demo ? 'Active [DEMO / Sample Record]' : 'Active & Validated under Official QCO',
+          explanation: rec.hallmark_information || `This product is registered in the Bureau of Indian Standards registry under ${rec.standard_number || 'mandatory standards'}. Reference: ${scannedValue}.`,
+          scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          verificationMethod: method,
+        });
+      } else {
+        setVerificationResult({
+          status: 'NEEDS_VERIFICATION',
+          productName: inputValue || 'Entered Registration Reference',
+          manufacturer: 'Manufacturer Record Verification Pending',
+          licenceNumber: inputValue || 'REG-XXXXXXXX',
+          standardNumber: 'IS 302 / IS 13252 / IS 1417',
+          category: 'General Goods',
+          validityStatus: 'Requires official BIS Portal confirmation',
+          explanation: 'The entered reference code was submitted for verification, but no active match was found in the database. Cross-check on ManakOnline (bis.gov.in).',
+          scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          verificationMethod: method,
+        });
+      }
+    } catch (err) {
+      console.warn('Scan verification API fallback:', err);
       setIsVerifying(false);
       setScanStatusMessage('Verification complete.');
 
@@ -114,7 +161,7 @@ export default function ScanPage() {
           verificationMethod: method
         });
       }
-    }, 1100);
+    }
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {

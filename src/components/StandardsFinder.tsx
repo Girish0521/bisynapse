@@ -5,6 +5,8 @@ import { Search, BookOpen, ExternalLink, ShieldCheck, Info, ArrowRight } from 'l
 import { StandardResult, Language } from '@/lib/types';
 import { mockStandards } from '@/lib/mockData';
 
+import { fetchStandardsSearch } from '@/lib/apiClient';
+
 interface StandardsFinderProps {
   currentLang: Language;
   onSelectStandard: (standard: StandardResult) => void;
@@ -23,16 +25,16 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
   const [filteredResults, setFilteredResults] = useState<StandardResult[]>(mockStandards);
   const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSearching(true);
 
-    setTimeout(() => {
-      const queryStr = (productName + ' ' + category + ' ' + material + ' ' + industry).toLowerCase();
-
-      if (!queryStr.trim()) {
-        setFilteredResults(mockStandards);
+    try {
+      const res = await fetchStandardsSearch({ productName, category, material, industry });
+      if (res && res.standards && res.standards.length > 0) {
+        setFilteredResults(res.standards);
       } else {
+        const queryStr = (productName + ' ' + category + ' ' + material + ' ' + industry).toLowerCase();
         const matches = mockStandards.filter(s =>
           s.title.toLowerCase().includes(queryStr) ||
           s.whyApplies.toLowerCase().includes(queryStr) ||
@@ -41,8 +43,19 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
         );
         setFilteredResults(matches.length > 0 ? matches : mockStandards);
       }
+    } catch (err) {
+      console.warn('Standards search API fallback:', err);
+      const queryStr = (productName + ' ' + category + ' ' + material + ' ' + industry).toLowerCase();
+      const matches = mockStandards.filter(s =>
+        s.title.toLowerCase().includes(queryStr) ||
+        s.whyApplies.toLowerCase().includes(queryStr) ||
+        s.category?.toLowerCase().includes(queryStr) ||
+        s.number.toLowerCase().includes(queryStr)
+      );
+      setFilteredResults(matches.length > 0 ? matches : mockStandards);
+    } finally {
       setIsSearching(false);
-    }, 350);
+    }
   };
 
   return (

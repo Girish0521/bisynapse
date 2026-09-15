@@ -75,9 +75,21 @@ function LoginContent() {
     }, 500);
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsAuthenticating(true);
     setAuthError(null);
+
+    try {
+      const { signInWithGoogle } = await import('@/lib/supabaseClient');
+      const res = await signInWithGoogle(selectedRole);
+      if (res && res.error) {
+        setAuthError(res.error.message);
+        setIsAuthenticating(false);
+        return;
+      }
+    } catch (e) {
+      console.warn('Google OAuth fallback to session routing:', e);
+    }
 
     setTimeout(() => {
       handleCompleteLogin(selectedRole, 'user.google@example.com');

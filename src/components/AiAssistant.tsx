@@ -5,6 +5,7 @@ import { ShieldCheck, Send, RotateCcw, Camera, BookOpen, ExternalLink, CheckCirc
 import { ChatMessage, Language } from '@/lib/types';
 import { generateAssistantResponse } from '@/lib/mockAiLogic';
 import { translations } from '@/lib/translations';
+import { fetchChatResponse } from '@/lib/apiClient';
 
 interface AiAssistantProps {
   currentLang: Language;
@@ -63,7 +64,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
     }
   }, [externalQuery, externalVisualContext]);
 
-  const handleSendQuery = (textToSend?: string, visualCtx?: any) => {
+  const handleSendQuery = async (textToSend?: string, visualCtx?: any) => {
     const queryText = textToSend || inputText;
     if (!queryText.trim() && !visualCtx) return;
 
@@ -78,12 +79,16 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
     if (!textToSend) setInputText('');
     setIsLoading(true);
 
-    const delay = Math.floor(Math.random() * 400) + 600;
-    setTimeout(() => {
-      const response = generateAssistantResponse(queryText, visualCtx);
+    try {
+      const response = await fetchChatResponse(queryText, visualCtx, { language: currentLang });
       setMessages((prev) => [...prev, response]);
+    } catch (err) {
+      console.warn('Backend chat API fallback to local engine:', err);
+      const fallback = generateAssistantResponse(queryText, visualCtx);
+      setMessages((prev) => [...prev, fallback]);
+    } finally {
       setIsLoading(false);
-    }, delay);
+    }
   };
 
   const handleResetChat = () => {

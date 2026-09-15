@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlaskConical, MapPin, Search, ExternalLink } from 'lucide-react';
 import { Language } from '@/lib/types';
+import { fetchLabs } from '@/lib/apiClient';
 import { mockLabs } from '@/lib/mockData';
 
 interface LabFinderProps {
@@ -13,13 +14,28 @@ interface LabFinderProps {
 export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
   const [selectedState, setSelectedState] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [labsList, setLabsList] = useState(mockLabs);
 
-  const filteredLabs = mockLabs.filter((lab) => {
+  useEffect(() => {
+    async function loadLabs() {
+      try {
+        const res = await fetchLabs({ state: selectedState, query: searchQuery });
+        if (res && res.labs && res.labs.length > 0) {
+          setLabsList(res.labs);
+        }
+      } catch (err) {
+        console.warn('Labs API load fallback:', err);
+      }
+    }
+    loadLabs();
+  }, [selectedState, searchQuery]);
+
+  const filteredLabs = labsList.filter((lab) => {
     const matchesState = !selectedState || lab.state.toLowerCase().includes(selectedState.toLowerCase());
     const matchesQuery = !searchQuery ||
       lab.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lab.productCategory.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lab.supportedStandards.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
+      (lab.productCategory || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (lab.supportedStandards || []).some((s: string) => s.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesState && matchesQuery;
   });
 

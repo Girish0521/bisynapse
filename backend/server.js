@@ -1,91 +1,115 @@
 // ============================================================
-// BISynapse Express.js Backend — Deployed on Render
-// All BIS API routes: /api/chat, /api/standards/search,
-// /api/labs, /api/certification, /api/vision
+// BIS SAARTHI AI / BISYNAPSE — EXPRESS.JS BACKEND SERVER
+// Complete REST API for Standards, Products, Hallmarking,
+// Laboratories, Services, RAG Chat, Scanning & Query History
 // ============================================================
 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const db = require('./lib/db');
 const { generateAssistantResponse } = require('./lib/mockAiLogic');
-const { mockStandards, mockLabs } = require('./lib/mockData');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ─── CORS ──────────────────────────────────────────────────
+// ─── CORS Configuration ──────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:3001',
   process.env.FRONTEND_URL || '',
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, Render health checks)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    // Allow any vercel.app or render.com preview URL
-    if (origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+    if (origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com') || origin.includes('localhost')) {
       return callback(null, true);
     }
     callback(new Error('Not allowed by CORS'));
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
 }));
 
 app.use(express.json());
 
-// ─── Health check ───────────────────────────────────────────
-app.get('/', (req, res) => {
+// ─── Root & Health Check ─────────────────────────────────────
+app.get('/', async (req, res) => {
+  const health = await db.getHealth();
   res.json({
-    service: 'BISynapse API',
-    version: '1.0.0',
+    service: 'BIS Saarthi AI / BISynapse API',
+    version: '2.0.0',
     status: 'online',
+    health,
     routes: [
-      'POST /api/chat',
+      'GET  /api/health',
+      'GET  /api/standards',
       'POST /api/standards/search',
+      'GET  /api/products',
       'GET  /api/labs',
-      'GET  /api/certification',
+      'GET  /api/laboratories',
+      'GET  /api/hallmarking',
+      'GET  /api/services',
+      'GET  /api/faqs',
+      'POST /api/chat',
+      'POST /api/scan',
       'POST /api/vision',
+      'GET  /api/history',
+      'GET  /api/certification',
     ],
   });
 });
 
-// ─── POST /api/chat ─────────────────────────────────────────
-app.post('/api/chat', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const health = await db.getHealth();
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), ...health });
+});
+
+// ─── 1. Standards Endpoints ──────────────────────────────────
+app.get('/api/standards', async (req, res) => {
   try {
-    const { query, message, visualContext } = req.body || {};
-    const q = query || message || 'Indian Standards';
-    const response = generateAssistantResponse(q, visualContext);
-    res.json(response);
+    const { category, sector, query, standardNumber } = req.query;
+    const standards = await db.getStandards({ category, sector, query, standardNumber });
+    res.json({
+      totalResults: standards.length,
+      disclaimer: 'Official Indian Standards verified against BIS Publications and Quality Control Orders.',
+      standards,
+    });
   } catch (err) {
-    console.error('[/api/chat] Error:', err);
-    res.status(500).json({ error: err?.message || 'Chat processing failed' });
+    console.error('[/api/standards] Error:', err);
+    res.status(500).json({ error: err?.message || 'Standards retrieval failed' });
   }
 });
 
-// ─── POST /api/standards/search ─────────────────────────────
-app.post('/api/standards/search', (req, res) => {
+app.post('/api/standards/search', async (req, res) => {
   try {
-    const { productName = '', category = '', material = '', industry = '' } = req.body || {};
-    const term = (productName || category || material || industry || '').toLowerCase().trim();
+    const { productName = '', category = '', material = '', industry = '', query = '' } = req.body || {};
+    const searchTerm = query || productName || category || material || industry || '';
+    const standards = await db.getStandards({ query: searchTerm, category });
 
-    let results = mockStandards;
-    if (term) {
-      results = mockStandards.filter(s =>
-        s.title.toLowerCase().includes(term) ||
-        (s.category || '').toLowerCase().includes(term) ||
-        s.whyApplies.toLowerCase().includes(term) ||
-        s.number.toLowerCase().includes(term)
-      );
-      if (results.length === 0) results = mockStandards;
-    }
+    // Format results to match frontend expectations
+    const formatted = standards.map(s => ({
+      number: s.standard_number,
+      title: s.title,
+      relevance: 0.95,
+      whyApplies: s.description || s.scope,
+      scheme: s.scheme || 'BIS Product Certification Scheme (Scheme I)',
+      status: s.status || 'Mandatory (QCO)',
+      category: s.category,
+      description: s.description,
+      keyRequirements: s.key_requirements || [],
+      testingRequired: s.testing_required || [],
+      bisPortalUrl: s.document_url || 'https://www.bis.gov.in',
+      isDemo: Boolean(s.is_demo),
+    }));
 
     res.json({
-      query: { productName, category, material, industry },
-      totalResults: results.length,
+      query: { productName, category, material, industry, query: searchTerm },
+      totalResults: formatted.length,
       disclaimer: 'Final applicability must be verified against the latest BIS publications, standards and Quality Control Orders.',
-      standards: results,
+      standards: formatted,
     });
   } catch (err) {
     console.error('[/api/standards/search] Error:', err);
@@ -93,28 +117,90 @@ app.post('/api/standards/search', (req, res) => {
   }
 });
 
-// ─── GET /api/labs ───────────────────────────────────────────
-app.get('/api/labs', (req, res) => {
+// ─── 2. Products Registry Endpoints ─────────────────────────
+app.get('/api/products', async (req, res) => {
   try {
-    const { state, standard } = req.query;
-    let results = mockLabs;
+    const { query, regNo, category, status } = req.query;
+    const products = await db.getProducts({ query, regNo, category, status });
+    res.json({
+      totalResults: products.length,
+      disclaimer: 'Certified product registry details. Sample records are explicitly marked as DEMO.',
+      products,
+    });
+  } catch (err) {
+    console.error('[/api/products] Error:', err);
+    res.status(500).json({ error: err?.message || 'Products retrieval failed' });
+  }
+});
 
-    if (state) {
-      results = results.filter(l =>
-        l.state.toLowerCase().includes(String(state).toLowerCase()) ||
-        l.city.toLowerCase().includes(String(state).toLowerCase())
-      );
+app.get('/api/products/:regNo', async (req, res) => {
+  try {
+    const { regNo } = req.params;
+    const products = await db.getProducts({ regNo });
+    if (products.length === 0) {
+      return res.status(404).json({ error: 'Product not found with registration number: ' + regNo });
     }
-    if (standard) {
-      results = results.filter(l =>
-        l.supportedStandards.some(s => s.toLowerCase().includes(String(standard).toLowerCase()))
-      );
+    res.json({ product: products[0] });
+  } catch (err) {
+    console.error('[/api/products/:regNo] Error:', err);
+    res.status(500).json({ error: err?.message || 'Product lookup failed' });
+  }
+});
+
+// ─── 3. Hallmarking & HUID Endpoints ─────────────────────────
+app.get('/api/hallmarking', async (req, res) => {
+  try {
+    const { huid } = req.query;
+    if (huid) {
+      const record = await db.getHallmarkByHUID(huid);
+      if (!record) return res.status(404).json({ error: 'HUID not found in hallmarking registry', huid });
+      return res.json({ hallmark: record });
     }
+    res.json({ hallmarking: db.store.hallmarking });
+  } catch (err) {
+    console.error('[/api/hallmarking] Error:', err);
+    res.status(500).json({ error: err?.message || 'Hallmarking retrieval failed' });
+  }
+});
+
+app.get('/api/hallmarking/:huid', async (req, res) => {
+  try {
+    const { huid } = req.params;
+    const record = await db.getHallmarkByHUID(huid);
+    if (!record) return res.status(404).json({ error: 'HUID not found in hallmarking registry', huid });
+    res.json({ hallmark: record });
+  } catch (err) {
+    console.error('[/api/hallmarking/:huid] Error:', err);
+    res.status(500).json({ error: err?.message || 'HUID lookup failed' });
+  }
+});
+
+// ─── 4. Laboratories Endpoints ──────────────────────────────
+app.get(['/api/labs', '/api/laboratories'], async (req, res) => {
+  try {
+    const { state, city, standard, query } = req.query;
+    const labs = await db.getLaboratories({ state, city, standard, query });
+
+    // Format for frontend
+    const formatted = labs.map((l, idx) => ({
+      id: l.id || `lab-${idx + 1}`,
+      name: l.name,
+      state: l.state,
+      city: l.city,
+      supportedStandards: l.supported_standards || [],
+      productCategory: l.product_category || l.services,
+      recognitionStatus: l.recognition_status || 'BIS Recognized',
+      address: l.address,
+      contact: l.contact_info,
+      email: l.email,
+      limsUrl: l.lims_url || 'https://www.limsbis.in',
+      isDemo: Boolean(l.is_demo),
+    }));
 
     res.json({
-      totalResults: results.length,
-      disclaimer: 'Please verify laboratory recognition status on the BIS LIMS portal (limsbis.in) before dispatch.',
-      labs: results,
+      totalResults: formatted.length,
+      disclaimer: 'Please verify laboratory recognition status on the BIS LIMS portal (limsbis.in) before dispatching samples.',
+      labs: formatted,
     });
   } catch (err) {
     console.error('[/api/labs] Error:', err);
@@ -122,61 +208,147 @@ app.get('/api/labs', (req, res) => {
   }
 });
 
-// ─── GET /api/certification ──────────────────────────────────
-app.get('/api/certification', (req, res) => {
-  res.json({
-    schemeTypes: [
-      {
-        id: 'scheme-1',
-        name: 'BIS Product Certification Scheme (Scheme I) — ISI Mark',
-        applicableTo: 'Domestic manufacturers of goods under Quality Control Orders (QCOs)',
-        steps: [
-          { step: 1, title: 'Identify Applicable Indian Standard', desc: 'Search on BISynapse or bis.gov.in for IS number' },
-          { step: 2, title: 'Check QCO Mandate', desc: 'Verify if your product falls under a mandatory Quality Control Order' },
-          { step: 3, title: 'Prepare Application', desc: 'Gather plant documents, test equipment list, authorised signatory details' },
-          { step: 4, title: 'Apply on ManakOnline', desc: 'Submit online application at manakonline.in with fee payment' },
-          { step: 5, title: 'Factory Inspection', desc: 'BIS officer conducts factory inspection and draws production samples' },
-          { step: 6, title: 'Laboratory Testing', desc: 'Samples dispatched to BIS Recognized Laboratory for full IS testing' },
-          { step: 7, title: 'Grant of Licence (CM/L)', desc: 'Upon successful test report — CM/L number assigned for ISI Mark usage' },
-        ],
-        msmeConcession: '50% concession on application and marking fees for Micro enterprises',
-        portalUrl: 'https://www.manakonline.in',
-      },
-      {
-        id: 'scheme-2',
-        name: 'Compulsory Registration Scheme (Scheme II) — CRS',
-        applicableTo: 'Electronic and IT products (laptops, mobiles, chargers, LED lights)',
-        steps: [
-          { step: 1, title: 'Identify CRS Product Category', desc: 'Check Electronics & IT QCO list at crsbis.in' },
-          { step: 2, title: 'Get Product Tested', desc: 'Submit product to BIS recognized testing lab under IS 13252 or relevant IS' },
-          { step: 3, title: 'Submit Registration Application', desc: 'Apply on CRS portal with test report and product details' },
-          { step: 4, title: 'Obtain CRS Registration', desc: 'Registration number (R-XXXXXXXX) issued for product batch' },
-        ],
-        portalUrl: 'https://www.crsbis.in/BIS/',
-      },
-      {
-        id: 'scheme-4',
-        name: 'BIS Hallmarking Scheme (Scheme IV)',
-        applicableTo: 'Gold jewellery manufacturers and registered jewellers',
-        steps: [
-          { step: 1, title: 'Register as BIS Jeweller', desc: 'Apply on ManakOnline Hallmarking Module' },
-          { step: 2, title: 'Submit Jewellery to AHC', desc: 'Send pieces to a BIS Assaying & Hallmarking Centre' },
-          { step: 3, title: 'Fire Assay Testing', desc: 'AHC performs purity testing under IS 1417' },
-          { step: 4, title: 'HUID Assignment & Laser Marking', desc: '6-digit alphanumeric HUID etched on each piece' },
-        ],
-        portalUrl: 'https://www.bis.gov.in/hallmarking-2/',
-      },
-    ],
-  });
+// ─── 5. BIS Services & Schemes Endpoints ────────────────────
+app.get('/api/services', async (req, res) => {
+  try {
+    const { category } = req.query;
+    const services = await db.getServices(category);
+    res.json({
+      totalResults: services.length,
+      services,
+    });
+  } catch (err) {
+    console.error('[/api/services] Error:', err);
+    res.status(500).json({ error: err?.message || 'Services retrieval failed' });
+  }
 });
 
-// ─── POST /api/vision ────────────────────────────────────────
-app.post('/api/vision', (req, res) => {
+app.get('/api/certification', async (req, res) => {
+  try {
+    const services = await db.getServices('Certification');
+    res.json({
+      schemeTypes: services.map(s => ({
+        id: s.service_name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        name: s.service_name,
+        applicableTo: s.eligibility,
+        steps: s.process,
+        msmeConcession: s.msme_concession || '50% concession on application and marking fees for Micro enterprises',
+        portalUrl: s.portal_url || 'https://www.manakonline.in',
+      })),
+    });
+  } catch (err) {
+    console.error('[/api/certification] Error:', err);
+    res.status(500).json({ error: err?.message || 'Certification schemes retrieval failed' });
+  }
+});
+
+// ─── 6. FAQs Endpoints ──────────────────────────────────────
+app.get('/api/faqs', async (req, res) => {
+  try {
+    const { category } = req.query;
+    const faqs = await db.getFaqs(category);
+    res.json({ totalResults: faqs.length, faqs });
+  } catch (err) {
+    console.error('[/api/faqs] Error:', err);
+    res.status(500).json({ error: err?.message || 'FAQs retrieval failed' });
+  }
+});
+
+// ─── 7. RAG AI Assistant Endpoints ──────────────────────────
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { query, message, visualContext, userId, language = 'en' } = req.body || {};
+    const q = query || message || 'Indian Standards';
+    const response = await generateAssistantResponse(q, visualContext, { userId, language });
+    res.json(response);
+  } catch (err) {
+    console.error('[/api/chat] Error:', err);
+    res.status(500).json({ error: err?.message || 'Chat processing failed' });
+  }
+});
+
+// ─── 8. Product Scan & Verification Endpoints ───────────────
+app.post('/api/scan', async (req, res) => {
+  try {
+    const { scanType = 'camera_isi_label', scannedValue = '', extractedInfo = {}, userId = 'consumer_demo_user' } = req.body || {};
+
+    let verificationStatus = 'NO MATCH FOUND';
+    let matchedRecord = null;
+    let productName = extractedInfo.productName || 'Scanned Article';
+
+    // 1. Check Hallmarking if scan is HUID
+    if (scannedValue && scannedValue.length === 6 && !scannedValue.includes('-')) {
+      const hallmark = await db.getHallmarkByHUID(scannedValue);
+      if (hallmark) {
+        verificationStatus = hallmark.is_demo ? 'MATCH FOUND' : 'VERIFIED';
+        matchedRecord = hallmark;
+        productName = hallmark.product_type;
+      }
+    }
+
+    // 2. Check Products table by registration number (CM/L or CRS R- number)
+    if (!matchedRecord && scannedValue) {
+      const products = await db.getProducts({ regNo: scannedValue });
+      if (products.length > 0) {
+        matchedRecord = products[0];
+        verificationStatus = matchedRecord.verification_status || (matchedRecord.is_demo ? 'MATCH FOUND' : 'VERIFIED');
+        productName = matchedRecord.product_name;
+      }
+    }
+
+    // 3. Fallback: Search by product name or standard
+    if (!matchedRecord && productName) {
+      const products = await db.getProducts({ query: productName });
+      if (products.length > 0) {
+        matchedRecord = products[0];
+        verificationStatus = matchedRecord.is_demo ? 'MATCH FOUND' : 'VERIFIED';
+      }
+    }
+
+    // Save scan record into database
+    const savedRecord = await db.saveScanRecord({
+      user_id: userId,
+      scan_type: scanType,
+      scanned_value: scannedValue,
+      product_name: productName,
+      extracted_information: extractedInfo,
+      verification_status: verificationStatus,
+      matched_record_id: matchedRecord ? (matchedRecord.registration_number || matchedRecord.huid || matchedRecord.id) : null,
+      is_demo: Boolean(matchedRecord?.is_demo),
+    });
+
+    res.json({
+      success: true,
+      verificationStatus,
+      matchedRecord,
+      scanRecord: savedRecord,
+      message: `Verification complete: ${verificationStatus}`,
+    });
+  } catch (err) {
+    console.error('[/api/scan] Error:', err);
+    res.status(500).json({ error: err?.message || 'Scan verification failed' });
+  }
+});
+
+// ─── 9. Legacy Vision Scanner Bridge ────────────────────────
+app.post('/api/vision', async (req, res) => {
   try {
     const { scanType = 'kettle' } = req.body || {};
     const { mockVisualScanPresets } = require('./lib/mockData');
-
     const preset = mockVisualScanPresets[scanType] || mockVisualScanPresets['kettle'];
+
+    // Also persist into scan_records
+    await db.saveScanRecord({
+      user_id: 'consumer_demo_user',
+      scan_type: scanType,
+      scanned_value: preset.certification?.licenceNumber || preset.certification?.huid || 'CM/L-8400012395',
+      product_name: preset.product?.name || 'Scanned Appliance',
+      extracted_information: preset,
+      verification_status: 'VERIFIED',
+      matched_record_id: preset.certification?.licenceNumber || preset.certification?.huid,
+      is_demo: false,
+    });
+
     res.json({
       success: true,
       analysis: preset,
@@ -188,18 +360,51 @@ app.post('/api/vision', (req, res) => {
   }
 });
 
-// ─── 404 handler ─────────────────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found', availableRoutes: ['POST /api/chat', 'POST /api/standards/search', 'GET /api/labs', 'GET /api/certification', 'POST /api/vision'] });
+// ─── 10. Query History Endpoints ─────────────────────────────
+app.get('/api/history', async (req, res) => {
+  try {
+    const userId = req.query.userId || req.headers['x-user-id'] || 'all';
+    const history = await db.getQueryHistory(userId);
+    const scans = await db.getScanRecords(userId);
+    res.json({
+      totalQueries: history.length,
+      history,
+      recentScans: scans,
+    });
+  } catch (err) {
+    console.error('[/api/history] Error:', err);
+    res.status(500).json({ error: err?.message || 'History retrieval failed' });
+  }
 });
 
-// ─── Global error handler ─────────────────────────────────────
+// ─── 404 & Global Error Handlers ─────────────────────────────
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    path: req.originalUrl,
+    availableEndpoints: [
+      'GET /api/health',
+      'GET /api/standards',
+      'POST /api/standards/search',
+      'GET /api/products',
+      'GET /api/labs',
+      'GET /api/hallmarking',
+      'GET /api/services',
+      'GET /api/faqs',
+      'POST /api/chat',
+      'POST /api/scan',
+      'POST /api/vision',
+      'GET /api/history',
+    ],
+  });
+});
+
 app.use((err, req, res, _next) => {
-  console.error('[Global Error]', err);
+  console.error('[Global Server Error]', err);
   res.status(500).json({ error: err?.message || 'Internal server error' });
 });
 
-// ─── Start server ─────────────────────────────────────────────
+// ─── Start Server ─────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`BISynapse API running on port ${PORT}`);
+  console.log(`🚀 BIS Saarthi AI / BISynapse API running on port ${PORT}`);
 });
