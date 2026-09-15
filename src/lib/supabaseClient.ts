@@ -25,7 +25,7 @@ export function getRedirectUrl(): string {
 }
 
 /**
- * Trigger Supabase Google OAuth Sign-In
+ * Trigger REAL Supabase Google OAuth Sign-In
  */
 export async function signInWithGoogle(desiredRole?: string) {
   if (typeof window !== 'undefined' && desiredRole) {
@@ -33,14 +33,12 @@ export async function signInWithGoogle(desiredRole?: string) {
   }
 
   if (!supabase) {
-    console.warn('Supabase credentials not set, using demo fallback authentication');
     return {
-      error: null,
-      data: {
-        url: null,
-        isMock: true,
-        role: desiredRole || 'consumer',
+      error: {
+        message: 'Supabase URL and Anon Key are not configured in your environment variables (NEXT_PUBLIC_SUPABASE_URL). Please add them to .env.local or Vercel settings.',
+        code: 'SUPABASE_NOT_CONFIGURED',
       },
+      data: { url: null },
     };
   }
 
@@ -86,13 +84,14 @@ export async function getUserProfile(userId: string) {
 }
 
 /**
- * Upsert User Profile into Supabase database
+ * Upsert User Profile into Supabase database (users table)
  */
 export async function saveUserProfile(profile: {
   auth_user_id: string;
   name: string;
   email: string;
   role: string;
+  avatar_url?: string;
   organization?: string;
 }) {
   if (!supabase) {
@@ -108,6 +107,7 @@ export async function saveUserProfile(profile: {
           name: profile.name,
           email: profile.email,
           role: profile.role,
+          avatar_url: profile.avatar_url || null,
           organization: profile.organization || null,
           updated_at: new Date().toISOString(),
         },
@@ -134,6 +134,7 @@ export async function signOut() {
     localStorage.removeItem('bisynapse_user_role');
     localStorage.removeItem('bisynapse_user_email');
     localStorage.removeItem('bisynapse_user_name');
+    localStorage.removeItem('bisynapse_user_avatar');
     localStorage.removeItem('bisynapse_user_id');
     localStorage.removeItem('bisynapse_pending_role');
   }
