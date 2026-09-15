@@ -5,9 +5,6 @@
   "framework": "nextjs",
   "regions": ["bom1"],
   "env": {
-    "NEXT_PUBLIC_BACKEND_URL": {
-      "description": "URL of the Render backend (e.g. https://bisynapse-api.onrender.com). Leave empty to use local Next.js API routes.",
-      "required": false
-    }
+    "NEXT_PUBLIC_BACKEND_URL": ""
   }
 }
