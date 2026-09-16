@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useAuth } from '@/lib/authContext';
 import { Navbar } from '@/components/Navbar';
 import { Hero } from '@/components/Hero';
 import { QuickActions } from '@/components/QuickActions';
@@ -17,35 +18,17 @@ import { ImpactMetrics } from '@/components/ImpactMetrics';
 import { Footer } from '@/components/Footer';
 import { CameraScannerModal } from '@/components/CameraScannerModal';
 import { StandardDetailModal } from '@/components/StandardDetailModal';
-import { Language, StandardResult, UserRole } from '@/lib/types';
+import { Language, StandardResult } from '@/lib/types';
 import { translations } from '@/lib/translations';
 
 export default function Home() {
   const [currentLang, setCurrentLang] = useState<Language>('en');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [selectedStandard, setSelectedStandard] = useState<StandardResult | null>(null);
-  const [activeRole, setActiveRole] = useState<UserRole | null>(null);
+  const { role: activeRole, logout: handleLogout } = useAuth();
 
   const [activeQuery, setActiveQuery] = useState<string | undefined>(undefined);
   const [activeVisualContext, setActiveVisualContext] = useState<any | undefined>(undefined);
-
-  // Check stored active user role on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedRole = localStorage.getItem('bisynapse_user_role') as UserRole;
-      if (storedRole && ['consumer', 'retailer', 'industry', 'officer'].includes(storedRole)) {
-        setActiveRole(storedRole);
-      }
-    }
-  }, []);
-
-  const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('bisynapse_user_role');
-      localStorage.removeItem('bisynapse_user_email');
-    }
-    setActiveRole(null);
-  };
 
   const handleNavigate = (sectionId: string) => {
     const el = document.getElementById(sectionId);

@@ -6,7 +6,7 @@ import { Shield, UserCheck, Store, Building2, CheckCircle2, AlertCircle, ArrowRi
 import { UserRole } from '@/lib/types';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { supabase, saveUserProfile, isAuthorizedOfficerEmail } from '@/lib/supabaseClient';
+import { saveUserProfile } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/authContext';
 
 export default function SelectRolePage() {
@@ -49,10 +49,9 @@ export default function SelectRolePage() {
     setErrorMsg(null);
 
     if (roleId === 'officer') {
-      const email = user?.email || localStorage.getItem('bisynapse_user_email') || '';
-      if (!isAuthorizedOfficerEmail(email)) {
+      if (!user?.isOfficerAuthorized) {
         setOfficerWarning(
-          'Notice: Government Officer role requires authorization with an official email (@bis.gov.in / @gov.in). If unauthorized, access will default to Consumer.'
+          'Officer access requires administrator approval. Your Google email alone does not grant access.'
         );
       } else {
         setOfficerWarning(null);
@@ -63,37 +62,36 @@ export default function SelectRolePage() {
   };
 
   const handleConfirmRole = async () => {
+    if (!user) {
+      router.replace('/login');
+      return;
+    }
     setIsSubmitting(true);
     setErrorMsg(null);
 
     let finalRole = selectedRole;
-    const userEmail = user?.email || localStorage.getItem('bisynapse_user_email') || '';
-    const userId = user?.id || localStorage.getItem('bisynapse_user_id') || 'demo-user-id';
-    const userName = user?.name || localStorage.getItem('bisynapse_user_name') || 'User';
+    const userEmail = user.email;
+    const userId = user.id;
+    const userName = user.name;
 
     // Verify Officer Security Authorization
     if (selectedRole === 'officer') {
-      const isAuthorized = isAuthorizedOfficerEmail(userEmail);
+      const isAuthorized = user.isOfficerAuthorized;
       if (!isAuthorized) {
-        setErrorMsg('Government Officer role requires official government authorization (@bis.gov.in / @gov.in). Assigning Consumer role.');
+        setErrorMsg('Officer access requires administrator approval. Assigning Consumer category.');
         finalRole = 'consumer';
       }
     }
 
     try {
-      if (supabase && userId !== 'demo-user-id') {
-        await saveUserProfile({
+      await saveUserProfile({
           auth_user_id: userId,
           name: userName,
           email: userEmail,
           role: finalRole,
-        });
-      }
+      });
 
       setRole(finalRole);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('bisynapse_user_role', finalRole);
-      }
 
       setTimeout(() => {
         setIsSubmitting(false);
@@ -102,10 +100,10 @@ export default function SelectRolePage() {
         else if (finalRole === 'industry') router.push('/industry');
         else if (finalRole === 'officer') router.push('/officer');
       }, 500);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error saving role:', err);
-      setErrorMsg('Failed to save selected role. Proceeding with default role...');
-      setTimeout(() => router.push('/consumer'), 1200);
+      setErrorMsg('Failed to save your category. Please try again.');
+      setIsSubmitting(false);
     }
   };
 

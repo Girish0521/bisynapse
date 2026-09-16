@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserRole } from '@/lib/types';
 import { useAuth } from '@/lib/authContext';
@@ -20,38 +20,16 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 }) => {
   const { user, role, isLoading } = useAuth();
   const router = useRouter();
-  const [accessDenied, setAccessDenied] = useState(false);
+  const roleAllowed = !allowedRole || (role && (Array.isArray(allowedRole)
+    ? allowedRole.includes(role) : allowedRole === role));
+  const officerRequired = requireOfficerAuth || role === 'officer';
+  const accessDenied = Boolean(user && (!roleAllowed || (officerRequired && !user.isOfficerAuthorized)));
 
   useEffect(() => {
     if (isLoading) return;
 
-    // 1. Unauthenticated -> Redirect to login
-    if (!user && !role) {
-      router.push('/login');
-      return;
-    }
-
-    // 2. Role checking if specified
-    if (allowedRole && role) {
-      const allowed = Array.isArray(allowedRole) ? allowedRole.includes(role) : allowedRole === role;
-      
-      if (!allowed) {
-        setAccessDenied(true);
-        return;
-      }
-    }
-
-    // 3. Government Officer security check
-    if (requireOfficerAuth || allowedRole === 'officer') {
-      const isAuthorized = user?.isOfficerAuthorized || role === 'officer';
-      if (!isAuthorized) {
-        setAccessDenied(true);
-        return;
-      }
-    }
-
-    setAccessDenied(false);
-  }, [user, role, isLoading, allowedRole, requireOfficerAuth, router]);
+    if (!user) router.replace('/login');
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -85,7 +63,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-start space-x-2">
             <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
             <span>
-              If you require officer access, please log in with your official government email (@bis.gov.in / @gov.in) or request administrative approval.
+              If you require officer access, request administrative approval for your authenticated account.
             </span>
           </div>
 
@@ -110,7 +88,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     );
   }
 
-  if (!user && !role) {
+  if (!user) {
     return null;
   }
 

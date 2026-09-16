@@ -1,170 +1,88 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import type { UserRole } from './types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
-const isConfigured =
-  Boolean(supabaseUrl) &&
-  Boolean(supabaseAnonKey) &&
-  !supabaseUrl.includes('your-supabase-project-ref') &&
-  !supabaseAnonKey.includes('your_supabase_anon_key_here');
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const isConfigured = Boolean(supabaseUrl && supabaseKey)
+  && !supabaseUrl.includes('your-supabase-project-ref')
+  && !supabaseKey.includes('your_supabase_anon_key_here');
 
 export const supabase: SupabaseClient | null = isConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
+  ? createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
     })
   : null;
 
-/**
- * Get current window origin safely for environment-aware OAuth redirect URLs
- */
 export function getRedirectUrl(): string {
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/auth/callback`;
-  }
-  return 'http://localhost:3000/auth/callback';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  return origin + '/auth/callback';
 }
 
-/**
- * Trigger REAL Supabase Google OAuth Sign-In
- */
+/** Public categories are preferences. Officer approval is admin-managed metadata. */
+export function resolveUserRole(user: User, desired?: string | null): UserRole {
+  const requested = desired || user.user_metadata?.role;
+  if (requested === 'officer' || (!desired && user.app_metadata?.role === 'officer')) {
+    return user.app_metadata?.role === 'officer' ? 'officer' : 'consumer';
+  }
+  return requested === 'retailer' || requested === 'industry' ? requested : 'consumer';
+}
+
 export async function signInWithGoogle(desiredRole?: string) {
+  if (!supabase) {
+    return { error: { message: 'Google sign-in is not configured yet. Please try again later.', code: 'SUPABASE_NOT_CONFIGURED' }, data: { url: null } };
+  }
   if (typeof window !== 'undefined' && desiredRole) {
     localStorage.setItem('bisynapse_pending_role', desiredRole);
   }
-
-  if (!supabase) {
-    return {
-      error: {
-        message: 'Supabase URL and Anon Key are missing in .env.local. Please paste your real NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY from Supabase Dashboard -> Project Settings -> API.',
-        code: 'SUPABASE_NOT_CONFIGURED',
-      },
-      data: { url: null },
-    };
-  }
-
-  const redirectUrl = getRedirectUrl();
-
   return supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: redirectUrl,
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
-      },
-    },
+    provider: 'google', options: { redirectTo: getRedirectUrl() },
   });
 }
 
-/**
- * Fetch existing User Profile & Role from Supabase database
- */
+function profileFromUser(user: User) {
+  return {
+    auth_user_id: user.id,
+    email: user.email || '',
+    name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+    avatar_url: user.user_metadata?.avatar_url || '',
+    role: resolveUserRole(user),
+  };
+}
+
+/** No public users table is needed for this initial Auth-only integration. */
 export async function getUserProfile(userId: string) {
-  if (!supabase) {
-    return null;
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('auth_user_id', userId)
-      .maybeSingle();
-
-    if (error) {
-      console.warn('Error fetching user profile from Supabase:', error.message);
-      return null;
-    }
-
-    return data;
-  } catch (err) {
-    console.error('Exception fetching profile:', err);
-    return null;
-  }
+  if (!supabase) return null;
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user || data.user.id !== userId) return null;
+  return profileFromUser(data.user);
 }
 
-/**
- * Upsert User Profile into Supabase database (users table)
- */
 export async function saveUserProfile(profile: {
-  auth_user_id: string;
-  name: string;
-  email: string;
-  role: string;
-  avatar_url?: string;
-  organization?: string;
+  auth_user_id: string; name: string; email: string; role: string;
+  avatar_url?: string; organization?: string;
 }) {
-  if (!supabase) {
-    return null;
+  if (!supabase) throw new Error('Authentication is not configured.');
+  const { data: verified, error: verifyError } = await supabase.auth.getUser();
+  if (verifyError || !verified.user || verified.user.id !== profile.auth_user_id) {
+    throw new Error('Please sign in before saving your category.');
   }
-
-  try {
-    const { data, error } = await supabase
-      .from('users')
-      .upsert(
-        {
-          auth_user_id: profile.auth_user_id,
-          name: profile.name,
-          email: profile.email,
-          role: profile.role,
-          avatar_url: profile.avatar_url || null,
-          organization: profile.organization || null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'auth_user_id' }
-      )
-      .select()
-      .single();
-
-    if (error) {
-      console.warn('Error saving user profile to Supabase:', error.message);
-    }
-    return data;
-  } catch (err) {
-    console.error('Exception saving profile:', err);
-    return null;
-  }
+  const role = resolveUserRole(verified.user, profile.role);
+  const { data, error } = await supabase.auth.updateUser({ data: {
+    name: profile.name, role: role === 'officer' ? 'consumer' : role,
+  } });
+  if (error) throw error;
+  return profileFromUser(data.user);
 }
 
-/**
- * Sign Out from Supabase Auth and clear local session state
- */
 export async function signOut() {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('bisynapse_user_role');
-    localStorage.removeItem('bisynapse_user_email');
-    localStorage.removeItem('bisynapse_user_name');
-    localStorage.removeItem('bisynapse_user_avatar');
-    localStorage.removeItem('bisynapse_user_id');
-    localStorage.removeItem('bisynapse_pending_role');
-  }
-
   if (supabase) {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      console.warn('Supabase signout notice:', e);
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  }
+  if (typeof window !== 'undefined') {
+    for (const key of ['bisynapse_user_role', 'bisynapse_user_email', 'bisynapse_user_name',
+      'bisynapse_user_avatar', 'bisynapse_user_id', 'bisynapse_pending_role']) {
+      localStorage.removeItem(key);
     }
   }
-}
-
-/**
- * Verify if email domain or profile is authorized for Government Officer role
- */
-export function isAuthorizedOfficerEmail(email: string): boolean {
-  if (!email) return false;
-  const lower = email.toLowerCase().trim();
-  return (
-    lower.endsWith('@bis.gov.in') ||
-    lower.endsWith('@gov.in') ||
-    lower.endsWith('@nic.in') ||
-    lower.startsWith('officer.') ||
-    lower.startsWith('admin.') ||
-    lower === 'officer@bisynapse.gov.in'
-  );
 }
