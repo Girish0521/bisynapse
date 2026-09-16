@@ -41,7 +41,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
 
   const suggestedPrompts = [
     'What BIS standard applies to my product?',
@@ -51,7 +51,9 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
   ];
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Keep chat updates inside the panel without moving the page on mount.
+    const panel = messagesScrollRef.current;
+    panel?.scrollTo({ top: panel.scrollHeight, behavior: 'smooth' });
   }, [messages, isLoading]);
 
   useEffect(() => {
@@ -147,7 +149,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
           </div>
 
           {/* Messages Scroll Area */}
-          <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6">
+          <div ref={messagesScrollRef} className="flex-1 min-h-0 p-4 sm:p-6 overflow-y-auto space-y-6">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -283,7 +285,6 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
               </div>
             )}
 
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Prompts quick row */}
