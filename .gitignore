@@ -32,9 +32,13 @@ yarn-error.log*
 
 # env files
 .env*
+!.env.example
 
 # backend
 backend/node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
 
 # vercel
 .vercel

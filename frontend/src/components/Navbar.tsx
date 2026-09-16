@@ -52,11 +52,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Ashoka Chakra / Flag Emblem Reference */}
           <div className="flex items-center space-x-1.5 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span className="font-semibold text-slate-100">भारत सरकार | Government of India</span>
+            <span className="font-semibold text-slate-100">BISynapse | SIH Prototype</span>
           </div>
           <span className="hidden md:inline text-slate-400">•</span>
           <span className="hidden md:inline text-slate-300 font-medium">
-            Bureau of Indian Standards Digital Services Portal
+            Independent Indian Standards Guidance Project
           </span>
         </div>
 

@@ -8,14 +8,14 @@
 
 const BACKEND_URL =
   typeof process !== 'undefined'
-    ? process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '') || 'http://localhost:4000'
+    ? process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '') || (process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '')
     : 'http://localhost:4000';
 
 function endpoint(path: string): string {
   if (BACKEND_URL) {
     return `${BACKEND_URL}${path}`;
   }
-  return path;
+  throw new Error('Backend is not configured. Set NEXT_PUBLIC_BACKEND_URL and rebuild the frontend.');
 }
 
 // ─── Health Check ──────────────────────────────────────────

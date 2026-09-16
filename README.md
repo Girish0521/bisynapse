@@ -1,4 +1,13 @@
-# BIS Saarthi AI — "Standards Made Simpler"
+# BISynapse: SIH development prototype
+
+The Next.js app now lives in `frontend/` and the Express API in `backend/`.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for local commands, Vercel settings,
+Render verification, Supabase configuration and the remaining milestones.
+
+The legacy feature description below describes the original vision and example UI.
+It is not evidence of production readiness, zero hallucinations, live BIS registry
+access, implemented OCR or validated performance. Those claims require implementation
+and evaluation. This is an independent prototype, not an official government portal.
 
 > **AI-powered Intelligent Assistant for Indian Standards and Bureau of Indian Standards (BIS) Services for Industries, MSMEs, Jewellers & Consumers.**
 

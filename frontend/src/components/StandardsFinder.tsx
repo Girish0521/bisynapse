@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Search, BookOpen, ExternalLink, ShieldCheck, Info, ArrowRight } from 'lucide-react';
 import { StandardResult, Language } from '@/lib/types';
-import { mockStandards } from '@/lib/mockData';
 
 import { fetchStandardsSearch } from '@/lib/apiClient';
 
@@ -22,37 +21,27 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
   const [category, setCategory] = useState('');
   const [material, setMaterial] = useState('');
   const [industry, setIndustry] = useState('');
-  const [filteredResults, setFilteredResults] = useState<StandardResult[]>(mockStandards);
+  const [filteredResults, setFilteredResults] = useState<StandardResult[]>([]);
+  const [searchNotice, setSearchNotice] = useState('Enter product details to search. Results require verification against current BIS publications.');
   const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSearching(true);
+    setFilteredResults([]);
+    setSearchNotice('');
 
     try {
       const res = await fetchStandardsSearch({ productName, category, material, industry });
-      if (res && res.standards && res.standards.length > 0) {
+      if (res && Array.isArray(res.standards) && res.standards.length > 0) {
         setFilteredResults(res.standards);
+        setSearchNotice('Candidate records from the prototype backend. Applicability and mandatory certification require official verification.');
       } else {
-        const queryStr = (productName + ' ' + category + ' ' + material + ' ' + industry).toLowerCase();
-        const matches = mockStandards.filter(s =>
-          s.title.toLowerCase().includes(queryStr) ||
-          s.whyApplies.toLowerCase().includes(queryStr) ||
-          s.category?.toLowerCase().includes(queryStr) ||
-          s.number.toLowerCase().includes(queryStr)
-        );
-        setFilteredResults(matches.length > 0 ? matches : mockStandards);
+        setSearchNotice('No candidate records found. Add more product details or consult the official BIS catalogue.');
       }
     } catch (err) {
-      console.warn('Standards search API fallback:', err);
-      const queryStr = (productName + ' ' + category + ' ' + material + ' ' + industry).toLowerCase();
-      const matches = mockStandards.filter(s =>
-        s.title.toLowerCase().includes(queryStr) ||
-        s.whyApplies.toLowerCase().includes(queryStr) ||
-        s.category?.toLowerCase().includes(queryStr) ||
-        s.number.toLowerCase().includes(queryStr)
-      );
-      setFilteredResults(matches.length > 0 ? matches : mockStandards);
+      console.warn('Standards search API unavailable:', err);
+      setSearchNotice('Search is unavailable or the backend is not configured. No recommendations were produced.');
     } finally {
       setIsSearching(false);
     }
@@ -158,9 +147,10 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
             <h3 className="font-bold text-sm text-[#0A2540]">
               Search Results ({filteredResults.length} Standards Found)
             </h3>
-            <span className="text-xs text-slate-500">Official Gazette Directory</span>
+            <span className="text-xs text-slate-500">Prototype search</span>
           </div>
 
+          {searchNotice && <p role="status" className="text-sm text-slate-600">{searchNotice}</p>}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredResults.map((std, idx) => (
               <div

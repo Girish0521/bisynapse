@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ShieldCheck, Send, RotateCcw, Camera, BookOpen, ExternalLink, CheckCircle2, User, Info, Lightbulb, Shield } from 'lucide-react';
 import { ChatMessage, Language } from '@/lib/types';
-import { generateAssistantResponse } from '@/lib/mockAiLogic';
 import { translations } from '@/lib/translations';
 import { fetchChatResponse } from '@/lib/apiClient';
 
@@ -26,9 +25,8 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
     {
       id: 'welcome-1',
       sender: 'assistant',
-      text: 'Namaste! Welcome to **BISynapse Assistant**, your official conversational guide for Indian Standards, BIS certification schemes, laboratory testing facilities, gold hallmarking, and consumer protection. Ask any technical compliance question in plain language.',
-      timestamp: 'BIS Portal',
-      confidence: 0.99,
+      text: 'Namaste! BISynapse is an independent SIH prototype for Indian Standards and BIS service guidance. Source-grounded AI and official registry integrations are under development. Verify regulatory and product information with BIS.',
+      timestamp: 'Prototype',
       isPrototypeNotice: true,
       followUps: [
         'What BIS standard applies to my product?',
@@ -83,9 +81,14 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
       const response = await fetchChatResponse(queryText, visualCtx, { language: currentLang });
       setMessages((prev) => [...prev, response]);
     } catch (err) {
-      console.warn('Backend chat API fallback to local engine:', err);
-      const fallback = generateAssistantResponse(queryText, visualCtx);
-      setMessages((prev) => [...prev, fallback]);
+      console.warn('Backend chat API unavailable:', err);
+      setMessages((prev) => [...prev, {
+        id: 'unavailable-' + Date.now(),
+        sender: 'assistant',
+        text: 'The backend is unavailable or not configured. No answer or verification was produced. Please retry after the connection is restored, or consult the official BIS website.',
+        timestamp: new Date().toLocaleTimeString(),
+        isPrototypeNotice: true,
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +108,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
           <div>
             <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded bg-blue-100 border border-blue-200 text-[#0F4C81] text-xs font-bold mb-1.5">
               <Shield className="w-3.5 h-3.5" />
-              <span>Official Conversational Gateway</span>
+              <span>SIH Prototype Assistant</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-[#0A2540] tracking-tight">
               BISynapse Assistant
@@ -160,11 +163,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                   
                   <div className="flex items-center justify-between text-[10px] text-slate-400 pb-1 border-b border-slate-100">
                     <span className="font-bold text-slate-500">{msg.sender === 'user' ? 'You' : 'BISynapse Assistant'} • {msg.timestamp}</span>
-                    {msg.confidence && (
-                      <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded font-mono font-bold border border-emerald-200">
-                        Confidence: {Math.round(msg.confidence * 100)}%
-                      </span>
-                    )}
+                    {msg.sender === 'assistant' && <span>Verify with official sources</span>}
                   </div>
 
                   <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium text-slate-800">
