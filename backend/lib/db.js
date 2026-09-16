@@ -7,12 +7,18 @@ const { createClient } = require('@supabase/supabase-js');
 const seedData = require('./seedData');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Explicit opt-in protects the shared database during prototype development.
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || '';
+const enableSupabase = process.env.ENABLE_SUPABASE === 'true';
 
 let supabase = null;
 let isConnectedToSupabase = false;
 
-if (SUPABASE_URL && SUPABASE_KEY) {
+if (enableSupabase && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Service-role access is disabled until backend authorization is implemented.');
+}
+
+if (enableSupabase && SUPABASE_URL && SUPABASE_KEY) {
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: { persistSession: false },
@@ -44,7 +50,7 @@ const store = {
 
 async function getHealth() {
   return {
-    database: isConnectedToSupabase ? 'Supabase PostgreSQL (Connected)' : 'Built-in Verified Database Layer (Active)',
+    database: isConnectedToSupabase ? 'Supabase client configured (connectivity not verified)' : 'Prototype seed data (not official verification)',
     supabaseConfigured: isConnectedToSupabase,
     counts: {
       standards: store.standards.length,

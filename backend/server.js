@@ -24,16 +24,20 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    if (origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com') || origin.includes('localhost')) {
-      return callback(null, true);
-    }
-    callback(new Error('Not allowed by CORS'));
+    callback(null, false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
 }));
 
-app.use(express.json());
+app.disable('x-powered-by');
+app.use(express.json({ limit: '256kb' }));
+
+// Private history is unavailable until verified JWT identity and ownership
+// checks replace client-controlled user IDs. CORS is not authentication.
+app.use('/api/history', (_req, res) => {
+  res.status(503).json({ error: 'Private history is disabled until authorization is implemented.' });
+});
 
 // ─── Root & Health Check ─────────────────────────────────────
 app.get('/', async (req, res) => {
