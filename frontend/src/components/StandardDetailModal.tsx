@@ -53,13 +53,13 @@ export const StandardDetailModal: React.FC<StandardDetailModalProps> = ({
           </div>
 
           <div className="p-3 bg-slate-50 rounded border border-slate-200 text-xs text-slate-700 space-y-1">
-            <span className="font-bold text-[#0A2540] uppercase block text-[10px]">Scope & Application</span>
+            <span className="font-bold text-[#0A2540] block text-[10px]">Scope & Application</span>
             <p className="leading-relaxed">{standard.description || standard.whyApplies}</p>
           </div>
 
           {standard.keyRequirements && standard.keyRequirements.length > 0 && (
             <div className="space-y-1.5 text-xs">
-              <span className="font-bold text-[#0A2540] uppercase tracking-wider block flex items-center space-x-1">
+              <span className="font-bold text-[#0A2540] tracking-wider block flex items-center space-x-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <span>Key Safety Requirements:</span>
               </span>
@@ -76,7 +76,7 @@ export const StandardDetailModal: React.FC<StandardDetailModalProps> = ({
 
           {standard.testingRequired && standard.testingRequired.length > 0 && (
             <div className="space-y-1.5 text-xs">
-              <span className="font-bold text-[#0A2540] uppercase tracking-wider block flex items-center space-x-1">
+              <span className="font-bold text-[#0A2540] tracking-wider block flex items-center space-x-1">
                 <FlaskConical className="w-4 h-4 text-[#0F4C81]" />
                 <span>Mandatory Lab Testing Parameters:</span>
               </span>

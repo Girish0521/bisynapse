@@ -24,7 +24,7 @@ export const BisLimsFallbackCard: React.FC<BisLimsFallbackCardProps> = ({
             <ShieldAlert className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Source</span>
+            <span className="text-[10px] font-bold text-slate-500 tracking-wider block">Source</span>
             <span className="font-bold text-xs text-[#0A2540]">Official BIS LIMS (lims.bis.gov.in)</span>
           </div>
         </div>

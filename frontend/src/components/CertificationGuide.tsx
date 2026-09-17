@@ -69,14 +69,14 @@ export const CertificationGuide: React.FC<CertificationGuideProps> = ({
             <div className="bg-slate-50 rounded-lg p-6 border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between h-full">
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                  <span className="text-xs font-bold text-[#0F4C81] uppercase">Stage {steps[activeStep].number} of 09</span>
+                  <span className="text-xs font-bold text-[#0F4C81] ">Stage {steps[activeStep].number} of 09</span>
                   <h3 className="text-lg font-bold text-[#0A2540]">{steps[activeStep].title}</h3>
                 </div>
 
                 <p className="text-xs text-slate-700 leading-relaxed">{steps[activeStep].detail}</p>
 
                 <div className="bg-white p-3.5 rounded border border-slate-200 space-y-1.5 text-xs">
-                  <span className="font-bold text-[#0A2540] uppercase block text-[10px]">Required Checklist & Documents:</span>
+                  <span className="font-bold text-[#0A2540] block text-[10px]">Required Checklist & Documents:</span>
                   <ul className="space-y-1">
                     {steps[activeStep].docs.map((doc, idx) => (
                       <li key={idx} className="flex items-center space-x-2 text-slate-700 text-xs">

@@ -13,8 +13,7 @@ interface QuickActionsProps {
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({
-  currentLang,
-  onNavigate
+  currentLang
 }) => {
   const t = translations[currentLang];
 
@@ -31,11 +30,12 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
     <section id="services" className="py-12 bg-white border-t border-slate-200 font-sans text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="border-b border-slate-200 pb-4 mb-8">
-          <h2 className="text-2xl font-black text-[#0A2540] tracking-tight">
+        <div className="pb-4 mb-8 max-w-2xl">
+          <p className="eyebrow text-[#237c7c] mb-3">Tools for your next step</p>
+          <h2 className="text-3xl font-semibold text-[#0A2540] tracking-tight">
             {t.quickActionsTitle}
           </h2>
-          <p className="text-xs text-slate-600">
+          <p className="text-sm text-slate-600 mt-3">
             {t.quickActionsDesc}
           </p>
         </div>
@@ -47,17 +47,17 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
               <Link
                 key={card.id}
                 href={card.href}
-                className="group bg-slate-50 hover:bg-white rounded-lg p-5 border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
+                className="group service-card flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded bg-[#0F4C81] text-amber-400 flex items-center justify-center font-bold">
+                  <div className="w-12 h-12 rounded-xl bg-[#e7f0ef] text-[#237c7c] flex items-center justify-center">
                     <Icon className="w-5 h-5 stroke-[2.2]" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-sm group-hover:text-[#0F4C81] transition-colors">
+                    <h3 className="font-semibold text-slate-900 text-lg group-hover:text-[#0F4C81] transition-colors">
                       {card.title}
                     </h3>
-                    <p className="text-xs text-slate-600 leading-normal mt-1 font-normal">
+                    <p className="text-sm text-slate-600 leading-relaxed mt-3 font-normal">
                       {card.description}
                     </p>
                   </div>

@@ -7,6 +7,7 @@ import { UserRole } from '@/lib/types';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { signInWithGoogle } from '@/lib/supabaseClient';
+import { EmailOtpLogin } from '@/components/EmailOtpLogin';
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -44,7 +45,7 @@ function LoginContent() {
       <div className="text-center space-y-2">
         <Shield className="w-10 h-10 text-[#0F4C81] mx-auto" />
         <h1 className="text-3xl font-black text-[#0A2540]">Sign in to BISynapse</h1>
-        <p className="text-sm text-slate-600">Choose how you use the prototype, then sign in with Google.</p>
+        <p className="text-sm text-slate-600">Choose how you use the prototype, then sign in.</p>
       </div>
       <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -64,7 +65,7 @@ function LoginContent() {
         </div>
         {selectedRole === 'officer' && (
           <p className="text-xs text-amber-800 bg-amber-50 p-3 rounded">
-            Google sign-in verifies your account. Officer access requires separate administrator approval.
+            Sign-in verifies your account. Officer access requires separate administrator approval.
           </p>
         )}
         {authError && (
@@ -74,8 +75,11 @@ function LoginContent() {
         )}
         <button type="button" onClick={handleGoogleSignIn} disabled={isAuthenticating}
           className="w-full py-3 bg-[#0F4C81] text-white font-bold text-sm rounded-lg disabled:opacity-50">
-          {isAuthenticating ? 'Connecting to Google...' : 'Continue with Google'}
+          {isAuthenticating ? 'Please wait...' : 'Continue with Google'}
         </button>
+        {process.env.NEXT_PUBLIC_ENABLE_EMAIL_OTP === 'true' && (
+          <EmailOtpLogin selectedRole={selectedRole} disabled={isAuthenticating} onBusyChange={setIsAuthenticating} />
+        )}
       </div>
       <p className="text-center text-xs text-slate-500">Independent SIH prototype. This is not an official BIS account.</p>
     </div>

@@ -48,7 +48,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen font-sans bg-white text-slate-900 selection:bg-[#0F4C81] selection:text-white">
+    <div className="landing-page min-h-screen font-sans bg-white text-slate-900 selection:bg-[#0F4C81] selection:text-white">
       
       {/* 1. Government Header Bar */}
       <Navbar

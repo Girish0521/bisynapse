@@ -175,7 +175,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                   {/* Standards Card */}
                   {msg.applicableStandards && msg.applicableStandards.length > 0 && (
                     <div className="bg-slate-50 rounded p-3 border border-slate-200 space-y-2 text-xs">
-                      <span className="font-bold text-[#0A2540] uppercase tracking-wider block flex items-center space-x-1">
+                      <span className="font-bold text-[#0A2540] tracking-wider block flex items-center space-x-1">
                         <BookOpen className="w-3.5 h-3.5 text-[#0F4C81]" />
                         <span>Recommended Indian Standards</span>
                       </span>
@@ -202,7 +202,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                   {/* Next Steps */}
                   {msg.nextSteps && msg.nextSteps.length > 0 && (
                     <div className="bg-blue-50/70 rounded p-3 border border-blue-200 space-y-2 text-xs">
-                      <span className="font-bold text-[#0F4C81] uppercase block">Recommended Next Steps:</span>
+                      <span className="font-bold text-[#0F4C81] block">Recommended Next Steps:</span>
                       <ul className="space-y-1 pt-0.5">
                         {msg.nextSteps.map((step, idx) => (
                           <li key={idx} className="flex items-start space-x-2 text-slate-800 text-xs">
@@ -217,7 +217,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                   {/* Sources */}
                   {msg.sources && msg.sources.length > 0 && (
                     <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-slate-500 tracking-wider block">
                         Official BIS Sources:
                       </span>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -289,7 +289,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
 
           {/* Prompts quick row */}
           <div className="bg-slate-100 px-4 py-2 border-t border-slate-200 flex items-center space-x-2 overflow-x-auto">
-            <span className="text-[10px] font-bold text-slate-500 uppercase shrink-0">Suggested:</span>
+            <span className="text-[10px] font-bold text-slate-500 shrink-0">Suggested:</span>
             {suggestedPrompts.map((prompt, idx) => (
               <button
                 key={idx}

@@ -51,7 +51,7 @@ export const HallmarkingSection: React.FC<HallmarkingSectionProps> = ({ onSendTo
         <div className="bg-[#0A2540] rounded-xl p-6 text-white shadow-xs mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-3 gap-2">
             <div>
-              <span className="text-[10px] font-bold text-amber-400 uppercase">Mandatory 3 Marks</span>
+              <span className="text-[10px] font-bold text-amber-400 ">Mandatory 3 Marks</span>
               <h3 className="text-lg font-bold text-white">How to Identify Genuine BIS Hallmarked Gold</h3>
             </div>
             <Link

@@ -56,7 +56,7 @@ export const MultilingualFeature: React.FC<MultilingualFeatureProps> = ({
             </div>
 
             <div className="md:col-span-5 bg-slate-800 p-4 rounded border border-slate-700 space-y-2 text-xs">
-              <span className="font-bold text-amber-400 uppercase tracking-wider block flex items-center space-x-1">
+              <span className="font-bold text-amber-400 tracking-wider block flex items-center space-x-1">
                 <Languages className="w-4 h-4" />
                 <span>Scheduled Languages Support</span>
               </span>

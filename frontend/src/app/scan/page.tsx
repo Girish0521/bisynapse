@@ -349,7 +349,7 @@ export default function ScanPage() {
 
             {(method === 'registration' || method === 'licence') && (
               <form onSubmit={handleManualSubmit} className="space-y-3 max-w-md mx-auto">
-                <label className="block text-xs font-bold text-slate-700 uppercase">
+                <label className="block text-xs font-bold text-slate-700 ">
                   Enter {method === 'licence' ? 'CM/L Licence Number' : 'CRS / HUID Registration Reference'}
                 </label>
                 <div className="flex gap-2">
@@ -372,7 +372,7 @@ export default function ScanPage() {
 
             {/* Test Sample Shortcuts */}
             <div className="pt-4 border-t border-slate-200 text-left">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
+              <span className="text-[11px] font-bold text-slate-500 tracking-wider block mb-2">
                 Or Test Sample Verification Records:
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -421,7 +421,7 @@ export default function ScanPage() {
               {/* Status Header */}
               <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-slate-500 tracking-wider block">
                     Product Verification Result
                   </span>
                   <h2 className="text-xl font-black text-[#0A2540] mt-0.5">
@@ -451,29 +451,29 @@ export default function ScanPage() {
               {/* Certification Details Table Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="p-3 bg-slate-50 rounded border border-slate-200">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Licence / Registration #</span>
+                  <span className="text-[10px] font-bold text-slate-500 block">Licence / Registration #</span>
                   <span className="font-mono font-bold text-[#0F4C81] text-sm">{verificationResult.licenceNumber}</span>
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded border border-slate-200">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Indian Standard</span>
+                  <span className="text-[10px] font-bold text-slate-500 block">Indian Standard</span>
                   <span className="font-bold text-slate-900 text-xs">{verificationResult.standardNumber}</span>
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded border border-slate-200">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Manufacturer Name</span>
+                  <span className="text-[10px] font-bold text-slate-500 block">Manufacturer Name</span>
                   <span className="font-semibold text-slate-800">{verificationResult.manufacturer}</span>
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded border border-slate-200">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Product Category</span>
+                  <span className="text-[10px] font-bold text-slate-500 block">Product Category</span>
                   <span className="font-medium text-slate-700">{verificationResult.category}</span>
                 </div>
               </div>
 
               {/* "What does this mean?" Explanation Box */}
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-1.5 text-xs text-slate-800">
-                <h4 className="font-bold text-[#0F4C81] text-xs uppercase tracking-wider flex items-center space-x-1">
+                <h4 className="font-bold text-[#0F4C81] text-xs tracking-wider flex items-center space-x-1">
                   <ShieldCheck className="w-4 h-4 text-[#0F4C81]" />
                   <span>What does this mean?</span>
                 </h4>

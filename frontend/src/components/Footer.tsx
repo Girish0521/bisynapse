@@ -4,18 +4,16 @@ import React from 'react';
 import Link from 'next/link';
 import { Shield, ExternalLink } from 'lucide-react';
 import { Language } from '@/lib/types';
-import { translations } from '@/lib/translations';
 
 interface FooterProps {
   currentLang: Language;
   onNavigate?: (sectionId: string) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ currentLang, onNavigate }) => {
-  const t = translations[currentLang];
+export const Footer: React.FC<FooterProps> = () => {
 
   return (
-    <footer className="bg-[#0A2540] text-slate-300 pt-10 pb-6 border-t border-slate-800 text-left font-sans">
+    <footer className="bg-[#0A2540] text-slate-300 pt-16 pb-8 border-t border-slate-800 text-left font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -27,25 +25,25 @@ export const Footer: React.FC<FooterProps> = ({ currentLang, onNavigate }) => {
                 <Shield className="w-5 h-5 stroke-[2.2]" />
               </div>
               <div>
-                <span className="font-extrabold text-lg text-white tracking-tight">
+                <span className="brand-wordmark font-bold text-xl text-white tracking-tight">
                   BISynapse
                 </span>
-                <p className="text-[10px] text-slate-400 font-medium">Bureau of Indian Standards Gateway</p>
+                <p className="text-xs text-slate-400 font-medium">Standards, made clearer</p>
               </div>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed max-w-sm">
-              Official digital portal for Indian Standards, BIS product certification schemes, gold hallmarking, LIMS laboratory search, and consumer quality protection.
+              Independent guidance for Indian Standards, certification pathways, quality marks, and consumer information.
             </p>
 
             <div className="p-2.5 bg-slate-900 rounded border border-slate-800 text-[11px] text-amber-400 font-medium">
-              Official Bureau of Indian Standards (BIS) Digital Portal Prototype — BISynapse.
+              An independent SIH prototype. Not an official BIS portal.
             </div>
           </div>
 
           {/* User Role Portals */}
           <div className="md:col-span-3 space-y-2 text-xs">
-            <h4 className="font-bold text-white uppercase tracking-wider text-[11px] border-b border-slate-800 pb-1">
+            <h4 className="font-bold text-white tracking-wider text-[11px] border-b border-slate-800 pb-1">
               Role Portals
             </h4>
             <ul className="space-y-1.5 text-slate-300 pt-1">
@@ -79,7 +77,7 @@ export const Footer: React.FC<FooterProps> = ({ currentLang, onNavigate }) => {
 
           {/* Official Government Links */}
           <div className="md:col-span-4 space-y-2 text-xs">
-            <h4 className="font-bold text-white uppercase tracking-wider text-[11px] border-b border-slate-800 pb-1">
+            <h4 className="font-bold text-white tracking-wider text-[11px] border-b border-slate-800 pb-1">
               Official BIS Portals
             </h4>
             <ul className="space-y-1.5 text-slate-300 pt-1">

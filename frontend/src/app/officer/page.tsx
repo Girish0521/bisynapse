@@ -58,7 +58,7 @@ function OfficerDashboardContent() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {auditSummary.map((item, idx) => (
             <div key={idx} className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase block">{item.title}</span>
+              <span className="text-[11px] font-bold text-slate-500 block">{item.title}</span>
               <span className="text-2xl font-black text-[#0A2540] block">{item.count}</span>
               <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded inline-block">
                 {item.status}

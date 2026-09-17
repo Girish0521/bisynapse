@@ -50,7 +50,7 @@ export const SourceBackedSection: React.FC = () => {
         </div>
 
         <div className="bg-slate-50 rounded-lg p-5 border border-slate-200 text-center space-y-3">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+          <span className="text-xs font-bold text-slate-500 tracking-wider block">
             Verification Pipeline Flowchart
           </span>
 

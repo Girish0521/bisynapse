@@ -1,203 +1,54 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Search, Scan, ArrowRight, UserCheck, Store, Building2, Shield, CheckCircle2, FileText, Lock } from 'lucide-react';
-import { Language } from '@/lib/types';
-import { translations } from '@/lib/translations';
+import { ArrowRight, Search, Scan, FileText, UserCheck, Store, Building2, Shield, Lock } from 'lucide-react';
+import type { Language } from '@/lib/types';
 
-interface HeroProps {
-  currentLang: Language;
-  onNavigate?: (sectionId: string) => void;
-  onOpenScanner?: () => void;
-}
+interface HeroProps { currentLang: Language; onNavigate?: (sectionId: string) => void; onOpenScanner?: () => void; }
+const categories = [
+  { id: 'consumer', title: 'Consumer', icon: UserCheck, description: 'Understand quality marks, explore product standards, and find consumer guidance.', label: 'Everyday confidence' },
+  { id: 'retailer', title: 'Retailer', icon: Store, description: 'Explore supplier checks, product requirements, and retail compliance guidance.', label: 'Better business' },
+  { id: 'industry', title: 'Industry / MSME', icon: Building2, description: 'Find relevant standards and understand the steps toward certification.', label: 'Build to a standard' },
+  { id: 'officer', title: 'Government officer', icon: Shield, description: 'Access the regulatory workspace with separate administrator approval.', label: 'Approval required' },
+];
 
-export const Hero: React.FC<HeroProps> = ({ currentLang, onNavigate }) => {
-  const t = translations[currentLang];
-
-  const userCategories = [
-    {
-      id: 'consumer',
-      title: 'Consumer',
-      subtitle: 'Product verification & quality protection',
-      icon: UserCheck,
-      badge: 'Public Service',
-      href: '/login?role=consumer',
-      items: [
-        'Verify product authenticity & ISI marks',
-        'Check BIS certification licence validity',
-        'Understand Indian Standards in simple terms',
-        'Lodge quality complaints & report concerns'
-      ]
-    },
-    {
-      id: 'retailer',
-      title: 'Retailer',
-      subtitle: 'Compliance & inventory verification',
-      icon: Store,
-      badge: 'Merchant Hub',
-      href: '/login?role=retailer',
-      items: [
-        'Verify supplier products & hallmarking',
-        'Check mandatory QCO compliance requirements',
-        'Understand retail sales compliance standards',
-        'Access official BIS verification records'
-      ]
-    },
-    {
-      id: 'industry',
-      title: 'Industry / MSME',
-      subtitle: 'Standards search & licensing assistance',
-      icon: Building2,
-      badge: 'Enterprise Gateway',
-      href: '/login?role=industry',
-      items: [
-        'Find applicable Indian Standards (IS numbers)',
-        'Step-by-step certification guidance & stepper',
-        'MSME & Startup fee concession information',
-        'Locate BIS recognized testing laboratories'
-      ]
-    },
-    {
-      id: 'officer',
-      title: 'Government Officer',
-      subtitle: 'Regulatory oversight & compliance verification',
-      icon: Shield,
-      badge: 'Official Oversight',
-      href: '/login?role=officer',
-      items: [
-        'High-density standards & gazette search',
-        'Market surveillance compliance verification',
-        'Regulatory reporting & analytical oversight',
-        'Official BIS service reference tools'
-      ]
-    }
-  ];
-
+export function Hero({ currentLang }: HeroProps) {
+  const intro = currentLang === 'hi' ? 'भारतीय मानकों को समझने का सरल रास्ता' : currentLang === 'te' ? 'భారతీయ ప్రమాణాలను అర్థం చేసుకోవడానికి సులభమైన మార్గం' : 'A clearer path to Indian Standards';
   return (
-    <section className="bg-white border-b border-slate-200 pt-8 pb-16 font-sans text-left">
-      
-      {/* Main Hero Container */}
+    <section id="hero" className="landing-hero text-[#0A2540]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Top Hero Banner Card */}
-        <div className="bg-[#0A2540] rounded-xl p-8 sm:p-12 text-white shadow-sm border border-slate-800 relative overflow-hidden mb-12">
-          
-          <div className="max-w-3xl space-y-5 relative z-10">
-            {/* Government Portal Badge */}
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded bg-[#0F4C81] text-amber-400 text-xs font-bold border border-blue-800">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Official Digital Services Gateway • Bureau of Indian Standards</span>
+        <div className="hero-grid">
+          <div>
+            <p className="eyebrow text-[#237c7c] mb-6">Standards. Simplified.</p>
+            <h1 className="hero-title">Clarity for every<br /><span>quality decision.</span></h1>
+            <p className="mt-7 text-lg text-slate-600 max-w-xl">{intro}. Explore standards, navigate certification, and know where to verify—with BISynapse.</p>
+            <div className="flex flex-wrap gap-3 mt-8">
+              <Link href="/login" className="design-button design-button-primary">Find your workspace <ArrowRight size={17} /></Link>
+              <Link href="/#standards" className="design-button design-button-secondary"><Search size={17} /> Explore standards</Link>
             </div>
-
-            {/* Main Brand Title */}
-            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-              BISynapse
-            </h1>
-
-            <p className="text-lg sm:text-xl text-slate-200 font-semibold leading-snug">
-              “Your Digital Gateway to BIS Standards, Certification & Compliance”
-            </p>
-
-            {/* Description */}
-            <p className="text-xs sm:text-sm text-slate-300 font-normal leading-relaxed max-w-2xl">
-              BISynapse provides a unified official portal for consumers, retailers, industries, MSMEs, and government officers to access Indian Standards, verify ISI marks and hallmarking, locate recognized labs, and navigate certification pathways.
-            </p>
-
-            {/* Primary Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-3">
-              <Link
-                href="/login"
-                className="px-6 py-3 bg-[#0F4C81] hover:bg-[#08345c] text-white font-bold text-xs rounded-md shadow-sm transition-colors flex items-center space-x-2 border border-blue-700"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="w-4 h-4 text-amber-400" />
-              </Link>
-
-              <a
-                href="#services"
-                className="px-6 py-3 bg-white hover:bg-slate-100 text-[#0A2540] font-bold text-xs rounded-md border border-slate-300 shadow-2xs transition-colors"
-              >
-                Explore BIS Services
-              </a>
-
-              <Link
-                href="/scan"
-                className="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs rounded-md border border-slate-700 flex items-center space-x-1.5 transition-colors"
-              >
-                <Scan className="w-4 h-4" />
-                <span>Scan & Verify Product</span>
-              </Link>
-            </div>
+            <p className="text-xs text-slate-500 mt-6">Independent SIH prototype · Verify regulatory information with BIS</p>
           </div>
-
+          <div className="hero-workspace">
+            <div className="flex justify-between items-center gap-4 border-b border-white/20 pb-6"><span className="eyebrow text-slate-300">Your starting point</span><span className="text-xs rounded-full border border-white/20 px-3 py-1 text-[#9fd4cc]">Prototype</span></div>
+            <h2 className="text-2xl font-semibold mt-6">From questions<br />to clearer next steps.</h2>
+            <Link href="/#standards" className="hero-workspace-row"><Search size={22} /><span className="flex-1"><span className="block text-sm font-semibold">Discover a standard</span><span className="block text-xs text-slate-300 mt-1">Search by product, material, or sector</span></span><ArrowRight size={16} /></Link>
+            <Link href="/#certification" className="hero-workspace-row"><FileText size={22} /><span className="flex-1"><span className="block text-sm font-semibold">Understand certification</span><span className="block text-xs text-slate-300 mt-1">A guided roadmap, one step at a time</span></span><ArrowRight size={16} /></Link>
+            <Link href="/scan" className="hero-workspace-row"><Scan size={22} /><span className="flex-1"><span className="block text-sm font-semibold">Explore product labels</span><span className="block text-xs text-slate-300 mt-1">Prototype scanner and verification guidance</span></span><ArrowRight size={16} /></Link>
+          </div>
         </div>
-
-        {/* 4 User Categories Grid */}
-        <div id="user-categories" className="space-y-6">
-          
-          <div className="border-b border-slate-200 pb-3">
-            <h2 className="text-xl font-bold text-[#0A2540] tracking-tight">
-              Select Your User Category
-            </h2>
-            <p className="text-xs text-slate-600">
-              Access customized BIS information, product verification tools and compliance guidance tailored for your role.
-            </p>
+        <div id="user-categories" className="mt-20">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-7"><div><p className="eyebrow text-[#237c7c] mb-3">Designed around you</p><h2 className="text-2xl sm:text-3xl font-semibold">One platform. Your perspective.</h2></div><p className="text-sm text-slate-500 max-w-xs">Choose a category for guidance tailored to the way you work.</p></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {categories.map(({ id, title, icon: Icon, description, label }, index) => (
+              <div key={id} className="category-card">
+                <div className="flex justify-between items-center mb-7"><Icon size={24} className="text-[#237c7c]" /><span className="text-xs text-slate-400">0{index + 1}</span></div>
+                <span className="eyebrow text-slate-500 mb-3">{label}</span><h3>{title}</h3><p className="mt-3 mb-7">{description}</p>
+                <Link href={`/login?role=${id}`} className="mt-auto pt-4 border-t border-slate-200 flex justify-between items-center gap-3 text-sm font-semibold">{id === 'officer' ? 'Officer sign-in' : 'Enter workspace'}{id === 'officer' ? <Lock size={16} /> : <ArrowRight size={16} />}</Link>
+              </div>
+            ))}
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {userCategories.map((cat) => {
-              const Icon = cat.icon;
-              return (
-                <div
-                  key={cat.id}
-                  className="bg-slate-50 hover:bg-white rounded-lg p-6 border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-md bg-[#0F4C81] text-white flex items-center justify-center font-bold">
-                        <Icon className="w-5 h-5 text-amber-400" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-200/80 px-2 py-0.5 rounded">
-                        {cat.badge}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-bold text-[#0A2540]">
-                        {cat.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 font-medium">
-                        {cat.subtitle}
-                      </p>
-                    </div>
-
-                    <ul className="space-y-2 text-xs text-slate-700 pt-1 border-t border-slate-200">
-                      {cat.items.map((item, idx) => (
-                        <li key={idx} className="flex items-start space-x-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#0F4C81] shrink-0 mt-0.5" />
-                          <span className="leading-tight text-[11px]">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="pt-5 mt-4 border-t border-slate-200">
-                    <Link
-                      href={cat.href}
-                      className="w-full py-2 bg-[#0F4C81] hover:bg-[#0A2540] text-white font-bold text-xs rounded text-center block transition-colors shadow-2xs"
-                    >
-                      Access {cat.title} Portal →
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
         </div>
-
       </div>
     </section>
   );
-};
+}

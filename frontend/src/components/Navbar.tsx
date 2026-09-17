@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Shield, Globe, ChevronDown, User, Scan, Search, HelpCircle, Menu, X, ArrowRight, Lock } from 'lucide-react';
+import { Shield, Globe, ChevronDown, User, HelpCircle, Menu, X } from 'lucide-react';
 import { Language, UserRole } from '@/lib/types';
-import { translations } from '@/lib/translations';
 
 interface NavbarProps {
   currentLang: Language;
@@ -19,21 +18,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentLang,
   onLanguageChange,
   onNavigate,
-  onOpenScanner,
   activeRole,
   onLogout
 }) => {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const t = translations[currentLang];
 
   const navLinks = [
     { id: 'hero', label: 'Home', href: '/' },
     { id: 'services', label: 'Services', href: '/#services' },
     { id: 'standards', label: 'Standards', href: '/#standards' },
-    { id: 'search', label: 'Search', href: '/#search' },
     { id: 'scan', label: 'Scan', href: '/scan' },
-    { id: 'about', label: 'About', href: '/#about' }
+    { id: 'architecture', label: 'About', href: '/#architecture' }
   ];
 
   const handleNavClick = (link: { id: string; href: string }) => {
@@ -44,10 +40,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-2xs font-sans">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-slate-200 font-sans">
       
       {/* Top Official Government Banner Strip */}
-      <div className="bg-[#0A2540] text-slate-200 text-[11px] py-1 px-4 flex justify-between items-center border-b border-slate-800">
+      <div className="bg-[#0A2540] text-slate-200 text-[11px] py-2 px-4 flex justify-between items-center border-b border-slate-800">
         <div className="flex items-center space-x-2 font-medium">
           {/* Ashoka Chakra / Flag Emblem Reference */}
           <div className="flex items-center space-x-1.5 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
@@ -83,10 +79,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Main Left-Aligned Compact Header Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           
           {/* LEFT SIDE: Brand Emblem & Main Navigation Links */}
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center gap-5 xl:gap-8">
             
             {/* BISynapse Brand Identification */}
             <Link href="/" className="flex items-center space-x-3 group">
@@ -95,21 +91,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
               <div className="text-left">
                 <div className="flex items-center space-x-1.5">
-                  <span className="font-extrabold text-xl text-[#0A2540] tracking-tight">
+                  <span className="brand-wordmark font-bold text-xl text-[#0A2540] tracking-tight">
                     BISynapse
                   </span>
                   <span className="px-1.5 py-0.2 text-[9px] font-bold bg-blue-100 text-[#0F4C81] rounded border border-blue-200">
-                    GOVT PORTAL
+                    Prototype
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 font-medium tracking-tight">
-                  Bureau of Indian Standards Gateway
+                  Standards, made clearer
                 </p>
               </div>
             </Link>
 
             {/* Left-Aligned Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center space-x-1">
+            <nav aria-label="Main navigation" className="hidden xl:flex items-center space-x-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.id}
@@ -125,7 +121,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* RIGHT SIDE: Language, Help, Login / Profile */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden xl:flex items-center space-x-3">
             
             {/* Language Dropdown Selector */}
             <div className="relative">
@@ -199,15 +195,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="px-4 py-1.5 bg-[#0F4C81] hover:bg-[#0A2540] text-white font-semibold text-xs rounded-md shadow-2xs flex items-center space-x-1.5 transition-colors"
               >
                 <User className="w-3.5 h-3.5 text-amber-400" />
-                <span>Login / Role Selection</span>
+                <span>Sign in</span>
               </Link>
             )}
 
           </div>
 
           {/* Mobile Hamburger Button */}
-          <div className="flex md:hidden items-center space-x-2">
+          <div className="flex xl:hidden items-center space-x-2">
             <button
+              aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+              aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-slate-700 hover:bg-slate-100 rounded-md"
             >
@@ -220,7 +218,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-4 space-y-2 text-left animate-in fade-in">
+        <div className="xl:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-4 space-y-2 text-left">
           {navLinks.map((link) => (
             <Link
               key={link.id}
@@ -243,12 +241,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <Link
-              href="/login"
+              href={activeRole ? `/${activeRole}` : '/login'}
               onClick={() => setMobileMenuOpen(false)}
               className="w-full text-center px-4 py-2 bg-[#0F4C81] text-white font-bold text-xs rounded-md"
             >
-              Login / Select Role
+              {activeRole ? 'Open your workspace' : 'Sign in / Select category'}
             </Link>
+            {activeRole && onLogout && <button onClick={onLogout} className="text-sm text-rose-700 py-2">Sign out</button>}
           </div>
         </div>
       )}

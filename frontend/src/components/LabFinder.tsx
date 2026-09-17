@@ -215,7 +215,7 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
                     </div>
 
                     <div className="p-2.5 bg-slate-50 rounded text-xs space-y-0.5 border border-slate-200">
-                      <span className="text-[9px] uppercase font-bold text-slate-500 block">Product Scope</span>
+                      <span className="text-[9px] font-bold text-slate-500 block">Product Scope</span>
                       <p className="font-semibold text-slate-800">{lab.productCategory}</p>
                     </div>
 

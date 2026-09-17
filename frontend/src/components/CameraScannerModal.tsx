@@ -245,7 +245,7 @@ export const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
 
               {method === 'registration' && (
                 <form onSubmit={handleManualSubmit} className="space-y-2 max-w-sm mx-auto">
-                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                  <label className="block text-xs font-bold text-slate-700 ">
                     Registration or CM/L Licence #
                   </label>
                   <div className="flex gap-2">
@@ -265,7 +265,7 @@ export const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
 
               {/* Sample Presets */}
               <div className="pt-2 border-t border-slate-200">
-                <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                <span className="text-[10px] font-bold text-slate-500 block mb-1">
                   Or Test Sample Records:
                 </span>
                 <div className="grid grid-cols-3 gap-2 text-xs">
@@ -298,7 +298,7 @@ export const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
               
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div>
-                  <span className="text-[9px] font-bold text-slate-500 uppercase block">Verification Result</span>
+                  <span className="text-[9px] font-bold text-slate-500 block">Verification Result</span>
                   <h4 className="font-bold text-slate-900 text-sm">{verificationResult.productName}</h4>
                 </div>
 
@@ -315,17 +315,17 @@ export const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="p-2 bg-slate-50 rounded border border-slate-200">
-                  <span className="text-[9px] font-bold text-slate-500 uppercase block">Licence / Ref #</span>
+                  <span className="text-[9px] font-bold text-slate-500 block">Licence / Ref #</span>
                   <span className="font-mono font-bold text-[#0F4C81]">{verificationResult.licenceNumber}</span>
                 </div>
                 <div className="p-2 bg-slate-50 rounded border border-slate-200">
-                  <span className="text-[9px] font-bold text-slate-500 uppercase block">Indian Standard</span>
+                  <span className="text-[9px] font-bold text-slate-500 block">Indian Standard</span>
                   <span className="font-bold text-slate-800">{verificationResult.standardNumber}</span>
                 </div>
               </div>
 
               <div className="p-3 bg-blue-50 border border-blue-200 rounded text-xs text-slate-800 space-y-1">
-                <span className="font-bold text-[#0F4C81] uppercase block text-[10px]">What does this mean?</span>
+                <span className="font-bold text-[#0F4C81] block text-[10px]">What does this mean?</span>
                 <p className="leading-normal">{verificationResult.explanation}</p>
               </div>
 

@@ -70,7 +70,7 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Product Name / Keyword
                 </label>
                 <input
@@ -83,7 +83,7 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Product Category
                 </label>
                 <select
@@ -102,7 +102,7 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Material Composition
                 </label>
                 <input
@@ -115,7 +115,7 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Industry / Sector
                 </label>
                 <input

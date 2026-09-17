@@ -52,7 +52,7 @@ export const ConsumerSupport: React.FC<ConsumerSupportProps> = ({ onSendToChat }
         <div className="bg-[#0A2540] text-white p-6 rounded-lg shadow-2xs space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-3 gap-2">
             <div>
-              <span className="text-[10px] font-bold text-amber-400 uppercase">Public Grievance Redressal</span>
+              <span className="text-[10px] font-bold text-amber-400 ">Public Grievance Redressal</span>
               <h3 className="text-lg font-bold text-white">Lodge a Quality Complaint with BIS</h3>
             </div>
             <a

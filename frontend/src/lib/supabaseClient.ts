@@ -49,6 +49,31 @@ function profileFromUser(user: User) {
   };
 }
 
+export async function sendEmailLoginCode(email: string, desiredRole: UserRole) {
+  if (!supabase) throw new Error('Email sign-in is not configured yet.');
+  const normalized = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) throw new Error('Enter a valid email address.');
+  const { error } = await supabase.auth.signInWithOtp({
+    email: normalized,
+    options: { shouldCreateUser: true, emailRedirectTo: getRedirectUrl() },
+  });
+  if (error) throw error;
+  // A category preference is not an authenticated session or authorization.
+  localStorage.setItem('bisynapse_pending_role', desiredRole);
+  return normalized;
+}
+
+export async function verifyEmailLoginCode(email: string, token: string, desiredRole: UserRole) {
+  if (!supabase) throw new Error('Email sign-in is not configured yet.');
+  if (!/^\d{6}$/.test(token)) throw new Error('Enter the six-digit code from your email.');
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: email.trim().toLowerCase(), token, type: 'email',
+  });
+  if (error) throw error;
+  if (!data.session) throw new Error('Sign-in could not be verified. Please request a new code.');
+  localStorage.setItem('bisynapse_pending_role', desiredRole);
+}
+
 /** No public users table is needed for this initial Auth-only integration. */
 export async function getUserProfile(userId: string) {
   if (!supabase) return null;
