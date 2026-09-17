@@ -9,7 +9,7 @@ interface ConsumerSupportProps {
   onSendToChat: (query: string) => void;
 }
 
-export const ConsumerSupport: React.FC<ConsumerSupportProps> = ({ onSendToChat }) => {
+export const ConsumerSupport: React.FC<ConsumerSupportProps> = () => {
   const topics = [
     { title: 'Identify Genuine ISI Mark', desc: 'Verify ISI mark displays Indian Standard number on top and CM/L licence number at bottom.', icon: CheckCircle2 },
     { title: 'Verify CRS Registration Mark', desc: 'Electronic goods must display Registration Number (R-XXXXXXXX) and IS standard reference.', icon: CheckCircle2 },

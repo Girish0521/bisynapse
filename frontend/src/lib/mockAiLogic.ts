@@ -1,7 +1,8 @@
+import type { VisualContext } from '@/lib/types';
 import { ChatMessage, SourceReference, StandardResult } from './types';
 import { mockStandards } from './mockData';
 
-export function generateAssistantResponse(userQuery: string, visualContext?: any): ChatMessage {
+export function generateAssistantResponse(userQuery: string, visualContext?: VisualContext): ChatMessage {
   const q = userQuery.toLowerCase();
 
   let confidence = 0.93;

@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0.0",
+  "documents": [
+    {
+      "document_id": "fssai-testing-20251217",
+      "authority": "FSSAI",
+      "document_type": "testing_scheme",
+      "official_url": "https://www.fssai.gov.in/upload/advisories/2025/12/6944f19f64122Scheme%20of%20Testing%20PDW%20MW.pdf",
+      "local_file_path": "data/raw/fssai_testing_scheme_2025.pdf",
+      "original_sha256": "92c0becd27441d8eced2b2ce90e1fef81185423f9c6fa71b7e25cebfb979466b",
+      "extracted_file_path": "data/extracted/fssai-testing-20251217.json",
+      "extracted_sha256": "25bfe73834275d9fa6fa9c719f15ad041778bf5dd69a1eeec4f78bbe8777ddf3",
+      "total_pdf_pages": 27,
+      "collection_date": "2026-09-17",
+      "review_status": "captured_not_fully_reviewed",
+      "reuse_permission": "unconfirmed",
+      "retrieval_status": "candidate_pending_review"
+    },
+    {
+      "document_id": "bis-pm-14543-jul2024",
+      "authority": "BIS",
+      "document_type": "product_manual",
+      "official_url": "https://www.bis.gov.in/wp-content/uploads/2024/07/PM-14543-July-2024-Approved.pdf",
+      "local_file_path": "data/raw/bis_pm_14543_july2024.pdf",
+      "original_sha256": "cff4db3047bf1d2daa376972c518c60887fb9a90f0d4720ba79de518157db030",
+      "extracted_file_path": "data/extracted/bis-pm-14543-jul2024.json",
+      "extracted_sha256": "77c0ee430de5e398287be26c6842b2914eda65998a5d4a47dd4cd85974d6d4d0",
+      "total_pdf_pages": 61,
+      "collection_date": "2026-09-17",
+      "review_status": "captured_not_fully_reviewed",
+      "reuse_permission": "unconfirmed",
+      "retrieval_status": "historical"
+    },
+    {
+      "document_id": "bis-circular-14543-20250730",
+      "authority": "BIS",
+      "document_type": "circular",
+      "official_url": "https://www.services.bis.gov.in/tmp/Circular_DAtI_2025-07-30.pdf",
+      "local_file_path": "data/raw/bis_circular_14543_20250730.pdf",
+      "original_sha256": "4bdee9d1263353cb9655e4b80e1c692dd82003764800979a9110bacdd1c11885",
+      "extracted_file_path": "data/extracted/bis-circular-14543-20250730.json",
+      "extracted_sha256": "b2f33b4ef596ded0f98ded41e1bb01040b90180179332111e3e2ea3a81e7dead",
+      "total_pdf_pages": 1,
+      "collection_date": "2026-09-17",
+      "review_status": "captured_not_fully_reviewed",
+      "reuse_permission": "unconfirmed",
+      "retrieval_status": "candidate_pending_review"
+    },
+    {
+      "document_id": "bis-pm-14543-jul2025",
+      "authority": "BIS",
+      "document_type": "product_manual",
+      "official_url": "https://www.bis.gov.in/wp-content/uploads/2025/07/PM-14543-July-2025-Rev.pdf",
+      "local_file_path": "data/raw/bis_pm_14543_july2025.pdf",
+      "original_sha256": "2bae4a847531854c5bec07e2304b060ee57c924d5c01e797af46f745a98cb15e",
+      "extracted_file_path": "data/extracted/bis-pm-14543-jul2025.json",
+      "extracted_sha256": "89d0978bfcb36b668314484f21ddbde01b0ca593f1196ee9a7a942f74804d953",
+      "total_pdf_pages": 57,
+      "collection_date": "2026-09-17",
+      "review_status": "captured_not_fully_reviewed",
+      "reuse_permission": "unconfirmed",
+      "retrieval_status": "candidate_pending_review",
+      "supersedes_document_id": "bis-pm-14543-jul2024"
+    },
+    {
+      "document_id": "bis-pm-13428-jul2024",
+      "authority": "BIS",
+      "document_type": "product_manual",
+      "official_url": "https://www.bis.gov.in/wp-content/uploads/2024/07/PM-13428-July-2024-approved.pdf",
+      "local_file_path": "data/raw/bis_pm_13428_july2024.pdf",
+      "original_sha256": "9d60b921805133225adb7a88c4ef772101998f0bdc2da107e375a0cfadd54f7e",
+      "extracted_file_path": "data/extracted/bis-pm-13428-jul2024.json",
+      "extracted_sha256": "7f70d7699bf62264204febe4aff4377886ebadceace156fe5b2e72f279e72bbe",
+      "total_pdf_pages": 57,
+      "collection_date": "2026-09-17",
+      "review_status": "captured_not_fully_reviewed",
+      "reuse_permission": "unconfirmed",
+      "retrieval_status": "candidate_pending_review"
+    }
+  ],
+  "coverage_gaps": [
+    "Original October 2024 Gazette: official server returned HTML instead of PDF",
+    "Verified laboratory records",
+    "Full-standard text"
+  ],
+  "limitations": [
+    "Page chunks, not clause-aware parsing",
+    "Tables and non-English extraction require visual review",
+    "Reuse rights unconfirmed"
+  ]
+}

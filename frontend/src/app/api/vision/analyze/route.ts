@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       analysis: result,
       disclaimer: 'Visual detection assists with label reading. Official authenticity must be verified on official BIS services.'
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to analyze product image' }, { status: 500 });
   }
 }

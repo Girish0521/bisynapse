@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Layers, Database, Cpu, FileText, CheckCircle2, Scan, Camera } from 'lucide-react';
+import { Cpu } from 'lucide-react';
 
 export const RagArchitecture: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'text' | 'vision'>('text');

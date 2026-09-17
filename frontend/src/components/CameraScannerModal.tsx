@@ -1,14 +1,16 @@
 'use client';
 
+import type { VisualContext } from '@/lib/types';
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Scan, QrCode, Barcode, Upload, Tag, Search, X, RefreshCw, CheckCircle2, AlertTriangle, XCircle, ShieldCheck, Sparkles, BookOpen, MessageSquare, ArrowRight } from 'lucide-react';
-import { VerificationResult, VisualAnalysisResult } from '@/lib/types';
-import { mockVisualScanPresets } from '@/lib/mockData';
+import { Scan, QrCode, Barcode, Upload, Tag, X, MessageSquare } from 'lucide-react';
+import { VerificationResult } from '@/lib/types';
+
 
 interface CameraScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSendToChat: (visualContext: any) => void;
+  onSendToChat: (visualContext: VisualContext) => void;
 }
 
 export const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
@@ -26,36 +28,27 @@ export const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (isOpen && cameraActive && (method === 'qr' || method === 'barcode')) {
-      startCamera();
-    } else {
-      stopCamera();
+    const video = videoRef.current;
+    let cancelled = false;
+    let ownedStream: MediaStream | undefined;
+    if (isOpen && cameraActive && (method === 'qr' || method === 'barcode') && navigator.mediaDevices?.getUserMedia) {
+      void navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then((stream) => {
+          if (cancelled || !video) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+          ownedStream = stream;
+          video.srcObject = stream;
+        })
+        .catch(() => { /* Camera permission can be declined. */ });
     }
     return () => {
-      stopCamera();
+      cancelled = true;
+      ownedStream?.getTracks().forEach((track) => track.stop());
+      if (video && video.srcObject === ownedStream) video.srcObject = null;
     };
   }, [isOpen, cameraActive, method]);
-
-  const startCamera = async () => {
-    try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      }
-    } catch {
-      // Permission handled gracefully
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
-  };
 
   const executeVerification = (presetType: 'kettle' | 'charger' | 'hallmark' | 'manual', inputValue?: string) => {
     setIsVerifying(true);

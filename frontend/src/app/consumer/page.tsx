@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { UserCheck, Scan, Search, Award, Gem, MessageSquare, Flag, History, ArrowRight } from 'lucide-react';
+import type { ScanHistoryRecord } from '@/lib/types';
 import { fetchHistory } from '@/lib/apiClient';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/lib/authContext';
@@ -20,7 +21,7 @@ function ConsumerDashboardContent() {
     { title: 'Report a Product', desc: 'Report fake ISI marks or sub-standard goods', icon: Flag, href: '/support' }
   ];
 
-  const [scanHistory, setScanHistory] = useState<any[]>([
+  const [scanHistory, setScanHistory] = useState<{ name: string; standard: string; licence: string; status: string; time: string }[]>([
     { name: 'Stainless Steel Electric Kettle', standard: 'IS 302-2-3', licence: 'CM/L-8400012395', status: '✓ VERIFIED', time: 'Today 2:15 PM' },
     { name: '22K Gold Bangle (HUID: K92A8M)', standard: 'IS 1417:2016', licence: 'HM/C-7281923', status: '✓ VERIFIED', time: 'Yesterday' }
   ]);
@@ -31,7 +32,7 @@ function ConsumerDashboardContent() {
         const userId = user?.id || 'consumer_demo_user';
         const res = await fetchHistory(userId);
         if (res && res.recentScans && res.recentScans.length > 0) {
-          const formatted = res.recentScans.slice(0, 6).map((s: any) => ({
+          const formatted = res.recentScans.slice(0, 6).map((s: ScanHistoryRecord) => ({
             name: s.product_name || 'Scanned Article',
             standard: s.extracted_information?.standard || 'IS Verified',
             licence: s.scanned_value || s.matched_record_id || 'CM/L-VERIFIED',

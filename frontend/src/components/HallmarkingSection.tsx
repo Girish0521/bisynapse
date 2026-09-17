@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Gem, Scan, Search, CheckCircle2, UserCheck, Store } from 'lucide-react';
+import { Gem, Scan } from 'lucide-react';
 import { Language } from '@/lib/types';
 
 interface HallmarkingSectionProps {
@@ -11,9 +11,9 @@ interface HallmarkingSectionProps {
   onSendToChat: (query: string) => void;
 }
 
-export const HallmarkingSection: React.FC<HallmarkingSectionProps> = ({ onSendToChat }) => {
+export const HallmarkingSection: React.FC<HallmarkingSectionProps> = () => {
   const [huidInput, setHuidInput] = useState('');
-  const [huidResult, setHuidResult] = useState<any>(null);
+  const [huidResult, setHuidResult] = useState<{ huid: string; purity: string; jeweller: string; ahc: string; hallmarkDate: string; articleType: string; status: string } | null>(null);
 
   const handleVerifyHuid = (e: React.FormEvent) => {
     e.preventDefault();

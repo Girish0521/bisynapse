@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "draft",
+  "questions": [
+    {
+      "eval_id": "effective-date",
+      "query": "When does the December 2025 testing scheme take effect?",
+      "expected_behavior": "answer_with_evidence",
+      "expected_answer": "1 January 2026",
+      "supporting_chunk_ids": [
+        "fssai-testing-20251217-p1"
+      ]
+    },
+    {
+      "eval_id": "file-number",
+      "query": "What is the file number of the testing order?",
+      "expected_behavior": "answer_with_evidence",
+      "expected_answer": "RCD-15001/19/2025-Regulatory-FSSAI",
+      "supporting_chunk_ids": [
+        "fssai-testing-20251217-p1"
+      ]
+    },
+    {
+      "eval_id": "labs",
+      "query": "Which nearby laboratory is currently FSSAI notified?",
+      "expected_behavior": "abstain_missing_corpus_evidence",
+      "missing_evidence_explanation": "No verified laboratory directory is in this corpus."
+    }
+  ]
+}

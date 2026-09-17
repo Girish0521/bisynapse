@@ -46,3 +46,9 @@ frontend/out/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local ingestion audit archives and rendering diagnostics
+__pycache__/
+*.pyc
+/data/fixtures/
+/data/review/

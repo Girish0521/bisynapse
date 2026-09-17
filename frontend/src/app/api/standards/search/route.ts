@@ -3,7 +3,7 @@ import { mockStandards } from '@/lib/mockData';
 
 export async function POST(request: Request) {
   try {
-    let body: any = {};
+    let body: { productName?: string; category?: string; material?: string; industry?: string } = {};
     try {
       body = await request.json();
     } catch {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       disclaimer: 'Final applicability must be verified against the latest BIS publications, standards and Quality Control Orders.',
       standards: results
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error?.message || 'Failed to search standards' }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to search standards' }, { status: 500 });
   }
 }

@@ -25,36 +25,27 @@ export default function ScanPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (cameraActive && (method === 'qr' || method === 'barcode')) {
-      startCamera();
-    } else {
-      stopCamera();
+    const video = videoRef.current;
+    let cancelled = false;
+    let ownedStream: MediaStream | undefined;
+    if (cameraActive && (method === 'qr' || method === 'barcode') && navigator.mediaDevices?.getUserMedia) {
+      void navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then((stream) => {
+          if (cancelled || !video) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+          ownedStream = stream;
+          video.srcObject = stream;
+        })
+        .catch(() => { /* Camera permission can be declined. */ });
     }
     return () => {
-      stopCamera();
+      cancelled = true;
+      ownedStream?.getTracks().forEach((track) => track.stop());
+      if (video && video.srcObject === ownedStream) video.srcObject = null;
     };
   }, [cameraActive, method]);
-
-  const startCamera = async () => {
-    try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      }
-    } catch {
-      // Permission error handled gracefully
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
-  };
 
   // Query BIS LIMS independently
   const loadLimsForStandard = useCallback(async (standardNo?: string, isRetry = false) => {
@@ -533,7 +524,7 @@ export default function ScanPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {limsResponse.results.slice(0, 4).map((lab: any) => (
+                    {limsResponse.results.slice(0, 4).map((lab) => (
                       <div key={lab.id} className="p-3 bg-slate-50 rounded border border-slate-200 space-y-1">
                         <span className="font-bold text-slate-900 block">{lab.name}</span>
                         <span className="text-[10px] text-slate-500 block">{lab.city}, {lab.state}</span>

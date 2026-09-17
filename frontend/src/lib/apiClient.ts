@@ -1,3 +1,4 @@
+import type { VisualContext, LabFacility } from './types';
 /**
  * BISynapse / BIS Saarthi AI API Client
  *
@@ -26,7 +27,7 @@ export async function fetchHealth() {
 }
 
 // ─── Chat / RAG ────────────────────────────────────────────
-export async function fetchChatResponse(query: string, visualContext?: any, options?: { userId?: string; language?: string }) {
+export async function fetchChatResponse(query: string, visualContext?: VisualContext, options?: { userId?: string; language?: string }) {
   const res = await fetch(endpoint('/api/chat'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -96,7 +97,7 @@ export interface LimsSearchResponse {
   message?: string;
   officialUrl: string;
   searchUrl: string;
-  results?: any[];
+  results?: LabFacility[];
   disclaimer?: string;
 }
 
@@ -151,7 +152,7 @@ export async function fetchLabs(params?: {
       results: data.results || data.labs || [],
       disclaimer: data.disclaimer,
     };
-  } catch (err: any) {
+  } catch {
     clearTimeout(timeoutId);
     return {
       success: false,
@@ -182,7 +183,7 @@ export async function fetchCertification() {
 export async function fetchScanVerification(payload: {
   scanType: string;
   scannedValue?: string;
-  extractedInfo?: any;
+  extractedInfo?: Record<string, unknown>;
   userId?: string;
 }) {
   const res = await fetch(endpoint('/api/scan'), {

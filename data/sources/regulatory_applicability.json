@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "partial",
+  "timeline": [
+    {
+      "date": "2025-12-17",
+      "effective_date": "2026-01-01",
+      "supporting_chunk_ids": [
+        "fssai-testing-20251217-p1"
+      ],
+      "statement": "Testing scheme effective 1 January 2026; original October 2024 amendment remains uncollected."
+    }
+  ]
+}

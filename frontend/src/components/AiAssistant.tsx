@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import type { VisualContext } from '@/lib/types';
+
+import React, { useState, useRef, useEffect, useEffectEvent } from 'react';
 import { ShieldCheck, Send, RotateCcw, Camera, BookOpen, ExternalLink, CheckCircle2, User, Info, Lightbulb, Shield } from 'lucide-react';
 import { ChatMessage, Language } from '@/lib/types';
 import { translations } from '@/lib/translations';
@@ -10,7 +12,7 @@ interface AiAssistantProps {
   currentLang: Language;
   onOpenScanner?: () => void;
   externalQuery?: string;
-  externalVisualContext?: any;
+  externalVisualContext?: VisualContext;
 }
 
 export const AiAssistant: React.FC<AiAssistantProps> = ({
@@ -56,15 +58,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
     panel?.scrollTo({ top: panel.scrollHeight, behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  useEffect(() => {
-    if (externalQuery) {
-      handleSendQuery(externalQuery);
-    } else if (externalVisualContext) {
-      handleSendQuery(`I scanned product: ${externalVisualContext.productName || 'Device'}. Standard: ${externalVisualContext.standardNumber || 'IS 302-2-3'}. Licence: ${externalVisualContext.licenceNumber || externalVisualContext.huid || 'CM/L-8400012395'}. Explain compliance and next steps.`, externalVisualContext);
-    }
-  }, [externalQuery, externalVisualContext]);
-
-  const handleSendQuery = async (textToSend?: string, visualCtx?: any) => {
+  const handleSendQuery = async (textToSend?: string, visualCtx?: VisualContext) => {
     const queryText = textToSend || inputText;
     if (!queryText.trim() && !visualCtx) return;
 
@@ -95,6 +89,20 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
       setIsLoading(false);
     }
   };
+
+  const sendExternalQuery = useEffectEvent(() => {
+    if (externalQuery) {
+      void handleSendQuery(externalQuery);
+    } else if (externalVisualContext) {
+      void handleSendQuery(`Explain the scanned product ${externalVisualContext.productName || 'Device'} and its next steps.`, externalVisualContext);
+    }
+  });
+
+  useEffect(() => {
+    if (!externalQuery && !externalVisualContext) return;
+    const pendingQuery = window.setTimeout(() => sendExternalQuery(), 0);
+    return () => window.clearTimeout(pendingQuery);
+  }, [externalQuery, externalVisualContext]);
 
   const handleResetChat = () => {
     setMessages(initialMessages);

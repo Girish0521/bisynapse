@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/authContext';
-import type { Language, StandardResult } from '@/lib/types';
+import type { Language, StandardResult, VisualContext } from '@/lib/types';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { AiAssistant } from './AiAssistant';
@@ -28,7 +28,7 @@ export function ToolWorkspace({ kind }: { kind: ToolKind }) {
   const [language, setLanguage] = useState<Language>('en');
   const [standard, setStandard] = useState<StandardResult | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
-  const [visualContext, setVisualContext] = useState<Record<string, unknown>>();
+  const [visualContext, setVisualContext] = useState<VisualContext>();
   const router = useRouter();
   const search = useSearchParams();
   const { role, logout } = useAuth();

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, BookOpen, ExternalLink, ShieldCheck, Info, ArrowRight } from 'lucide-react';
+import { Search, BookOpen, ArrowRight } from 'lucide-react';
 import { StandardResult, Language } from '@/lib/types';
 
 import { fetchStandardsSearch } from '@/lib/apiClient';
@@ -13,7 +13,6 @@ interface StandardsFinderProps {
 }
 
 export const StandardsFinder: React.FC<StandardsFinderProps> = ({
-  currentLang,
   onSelectStandard,
   onSendToChat
 }) => {

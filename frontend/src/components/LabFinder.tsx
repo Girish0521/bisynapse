@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { FlaskConical, MapPin, Search, ExternalLink, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FlaskConical, MapPin, Search, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Language } from '@/lib/types';
 import { fetchLabs, LimsSearchResponse } from '@/lib/apiClient';
 import { BisLimsFallbackCard } from '@/components/BisLimsFallbackCard';
@@ -17,7 +17,7 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
   const [simulateFailure, setSimulateFailure] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isRetrying, setIsRetrying] = useState(false);
   const [limsResponse, setLimsResponse] = useState<LimsSearchResponse | null>(null);
 
@@ -54,8 +54,12 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
   }, [selectedState, searchQuery, simulateFailure, isDemoMode]);
 
   useEffect(() => {
-    loadLabsData();
-  }, [loadLabsData]);
+    let active = true;
+    void fetchLabs({ state: selectedState, query: searchQuery, simulateFailure, demo: isDemoMode })
+      .then((response) => { if (active) setLimsResponse(response); })
+      .finally(() => { if (active) setIsLoading(false); });
+    return () => { active = false; };
+  }, [selectedState, searchQuery, simulateFailure, isDemoMode]);
 
   const handleRetry = () => {
     loadLabsData(true);
@@ -198,7 +202,7 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {labsList.map((lab: any) => (
+              {labsList.map((lab) => (
                 <div key={lab.id} className="bg-white rounded-lg p-5 border border-slate-200 shadow-2xs space-y-3 flex flex-col justify-between text-left">
                   <div className="space-y-2">
                     <div className="flex items-start justify-between">

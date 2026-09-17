@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         '6. Licence grant'
       ]
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to check certification' }, { status: 500 });
   }
 }

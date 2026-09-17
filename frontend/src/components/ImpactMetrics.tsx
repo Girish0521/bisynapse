@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Building2, Rocket, Users, GraduationCap, ShieldCheck, TrendingUp, Clock, Globe2, Layers } from 'lucide-react';
+import { Building2, Rocket, Users, GraduationCap, ShieldCheck, TrendingUp } from 'lucide-react';
 
 export const ImpactMetrics: React.FC = () => {
   const stakeholderCards = [

@@ -44,7 +44,7 @@ export const BisLimsFallbackCard: React.FC<BisLimsFallbackCardProps> = ({
           </h3>
         </div>
         <p className="text-xs text-slate-600 leading-relaxed pl-6">
-          We couldn't retrieve laboratory information from the official BIS LIMS service right now. Please try again or open the official BIS LIMS portal.
+          We couldn&apos;t retrieve laboratory information from the official BIS LIMS service right now. Please try again or open the official BIS LIMS portal.
         </p>
       </div>
 

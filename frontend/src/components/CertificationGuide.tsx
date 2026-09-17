@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Award, CheckCircle2, FileText, FlaskConical, Building, ShieldCheck, ArrowRight, Layers } from 'lucide-react';
+import { Award, CheckCircle2 } from 'lucide-react';
 import { Language } from '@/lib/types';
 
 interface CertificationGuideProps {
@@ -9,9 +9,7 @@ interface CertificationGuideProps {
   onSendToChat: (query: string) => void;
 }
 
-export const CertificationGuide: React.FC<CertificationGuideProps> = ({
-  onSendToChat
-}) => {
+export const CertificationGuide: React.FC<CertificationGuideProps> = () => {
   const [activeStep, setActiveStep] = useState(0);
 
   const steps = [

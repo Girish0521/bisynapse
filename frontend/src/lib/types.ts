@@ -102,3 +102,20 @@ export interface VisualAnalysisResult {
   requiresVerification: boolean;
   rawSummary: string;
 }
+
+export interface VisualContext {
+  productName?: string;
+  standardNumber?: string;
+  licenceNumber?: string;
+  huid?: string;
+  bisMarkDetected?: boolean;
+  imageUrl?: string;
+}
+export interface ScanHistoryRecord {
+  product_name?: string;
+  extracted_information?: { standard?: string };
+  scanned_value?: string;
+  matched_record_id?: string;
+  verification_status?: string;
+  created_at?: string;
+}

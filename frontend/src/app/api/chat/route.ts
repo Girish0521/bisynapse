@@ -1,9 +1,10 @@
+import type { VisualContext } from '@/lib/types';
 import { NextResponse } from 'next/server';
 import { generateAssistantResponse } from '@/lib/mockAiLogic';
 
 export async function POST(request: Request) {
   try {
-    let body: any = {};
+    let body: { query?: string; message?: string; visualContext?: VisualContext } = {};
     try {
       body = await request.json();
     } catch {
@@ -14,8 +15,8 @@ export async function POST(request: Request) {
 
     const response = generateAssistantResponse(query, visualContext);
     return NextResponse.json(response);
-  } catch (err: any) {
+  } catch (err) {
     console.error('Chat API Error:', err);
-    return NextResponse.json({ error: err?.message || 'Failed to process chat query' }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed to process chat query' }, { status: 500 });
   }
 }

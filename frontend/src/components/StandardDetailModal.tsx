@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, ExternalLink, CheckCircle2, ShieldCheck, AlertCircle, FlaskConical, ArrowRight, BookOpen } from 'lucide-react';
+import { X, ExternalLink, CheckCircle2, ShieldCheck, AlertCircle, FlaskConical, ArrowRight } from 'lucide-react';
 import { StandardResult } from '@/lib/types';
 
 interface StandardDetailModalProps {
