@@ -1,153 +1,51 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/authContext';
 import { Navbar } from '@/components/Navbar';
 import { Hero } from '@/components/Hero';
 import { QuickActions } from '@/components/QuickActions';
-import { AiAssistant } from '@/components/AiAssistant';
-import { StandardsFinder } from '@/components/StandardsFinder';
-import { CertificationGuide } from '@/components/CertificationGuide';
-import { LabFinder } from '@/components/LabFinder';
-import { HallmarkingSection } from '@/components/HallmarkingSection';
-import { ConsumerSupport } from '@/components/ConsumerSupport';
-import { MultilingualFeature } from '@/components/MultilingualFeature';
-import { RagArchitecture } from '@/components/RagArchitecture';
-import { SourceBackedSection } from '@/components/SourceBackedSection';
-import { ImpactMetrics } from '@/components/ImpactMetrics';
 import { Footer } from '@/components/Footer';
-import { CameraScannerModal } from '@/components/CameraScannerModal';
-import { StandardDetailModal } from '@/components/StandardDetailModal';
-import { Language, StandardResult } from '@/lib/types';
-import { translations } from '@/lib/translations';
+import type { Language } from '@/lib/types';
+
+const oldSections: Record<string, string> = {
+  standards: '/standards', assistant: '/assistant', certification: '/certification',
+  labs: '/labs', hallmarking: '/hallmarking', consumer: '/support', help: '/support',
+  architecture: '/about', metrics: '/about', about: '/about', search: '/standards',
+};
 
 export default function Home() {
-  const [currentLang, setCurrentLang] = useState<Language>('en');
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [selectedStandard, setSelectedStandard] = useState<StandardResult | null>(null);
-  const { role: activeRole, logout: handleLogout } = useAuth();
-
-  const [activeQuery, setActiveQuery] = useState<string | undefined>(undefined);
-  const [activeVisualContext, setActiveVisualContext] = useState<any | undefined>(undefined);
-
-  const handleNavigate = (sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleSendPresetQuery = (query: string) => {
-    setActiveQuery(query);
-    handleNavigate('assistant');
-  };
-
-  const handleSendVisualToChat = (visualContext: any) => {
-    setActiveVisualContext(visualContext);
-    handleNavigate('assistant');
-  };
-
+  const [language, setLanguage] = useState<Language>('en');
+  const { role, logout } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    const redirect = () => {
+      const destination = oldSections[window.location.hash.slice(1)];
+      if (destination) router.replace(destination);
+    };
+    redirect();
+    // The prototype banner lives outside this page. Include it when returning
+    // home instead of letting route scroll restoration stop below the banner.
+    if (!window.location.hash) window.scrollTo({ top: 0, behavior: 'instant' });
+    window.addEventListener('hashchange', redirect);
+    return () => window.removeEventListener('hashchange', redirect);
+  }, [router]);
   return (
-    <div className="landing-page min-h-screen font-sans bg-white text-slate-900 selection:bg-[#0F4C81] selection:text-white">
-      
-      {/* 1. Government Header Bar */}
-      <Navbar
-        currentLang={currentLang}
-        onLanguageChange={setCurrentLang}
-        onNavigate={handleNavigate}
-        onOpenScanner={() => setIsScannerOpen(true)}
-        activeRole={activeRole}
-        onLogout={handleLogout}
-      />
-
+    <div className="landing-page min-h-screen bg-white text-slate-900">
+      <Navbar currentLang={language} onLanguageChange={setLanguage} activeRole={role} onLogout={logout} />
       <main>
-        {/* 2. Hero Section with 4 User Categories */}
-        <Hero
-          currentLang={currentLang}
-          onNavigate={handleNavigate}
-          onOpenScanner={() => setIsScannerOpen(true)}
-        />
-
-        {/* 3. BISynapse Assistant Section */}
-        <AiAssistant
-          currentLang={currentLang}
-          onOpenScanner={() => setIsScannerOpen(true)}
-          externalQuery={activeQuery}
-          externalVisualContext={activeVisualContext}
-        />
-
-        {/* 4. Quick Services Hub */}
-        <QuickActions
-          currentLang={currentLang}
-          onNavigate={handleNavigate}
-          onOpenScanner={() => setIsScannerOpen(true)}
-        />
-
-        {/* 5. Standards Search Engine */}
-        <StandardsFinder
-          currentLang={currentLang}
-          onSelectStandard={setSelectedStandard}
-          onSendToChat={handleSendPresetQuery}
-        />
-
-        {/* 6. Visual Certification Journey Stepper */}
-        <CertificationGuide
-          currentLang={currentLang}
-          onSendToChat={handleSendPresetQuery}
-        />
-
-        {/* 7. Laboratory Directory */}
-        <LabFinder
-          currentLang={currentLang}
-          onSendToChat={handleSendPresetQuery}
-        />
-
-        {/* 8. Gold Hallmarking & HUID Verification */}
-        <HallmarkingSection
-          currentLang={currentLang}
-          onOpenScanner={() => setIsScannerOpen(true)}
-          onSendToChat={handleSendPresetQuery}
-        />
-
-        {/* 9. Consumer Support & Grievance Guidance */}
-        <ConsumerSupport
-          currentLang={currentLang}
-          onSendToChat={handleSendPresetQuery}
-        />
-
-        {/* 10. Multilingual Accessibility */}
-        <MultilingualFeature
-          currentLang={currentLang}
-          onLanguageChange={setCurrentLang}
-        />
-
-        {/* 11. Traceable Citations */}
-        <SourceBackedSection />
-
-        {/* 12. System Architecture */}
-        <RagArchitecture />
-
-        {/* 13. Impact Metrics */}
-        <ImpactMetrics />
+        <Hero currentLang={language} />
+        <QuickActions currentLang={language} />
+        <section className="bg-[#eef3f3]">
+          <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-start gap-6">
+            <div><h2 className="text-2xl font-semibold">Have a question about standards?</h2><p className="text-slate-600 mt-3">Open the assistant for guidance, or explore the project and its planned capabilities.</p></div>
+            <div className="flex flex-wrap gap-3"><Link className="design-button design-button-primary" href="/assistant">Ask BISynapse</Link><Link className="design-button design-button-secondary" href="/about">About the project</Link></div>
+          </div>
+        </section>
       </main>
-
-      {/* 14. Footer */}
-      <Footer currentLang={currentLang} onNavigate={handleNavigate} />
-
-      {/* Camera Scanner Modal */}
-      <CameraScannerModal
-        isOpen={isScannerOpen}
-        onClose={() => setIsScannerOpen(false)}
-        onSendToChat={handleSendVisualToChat}
-      />
-
-      {/* Standard Detail Modal */}
-      <StandardDetailModal
-        standard={selectedStandard}
-        onClose={() => setSelectedStandard(null)}
-        onSendToChat={handleSendPresetQuery}
-      />
-
+      <Footer currentLang={language} />
     </div>
   );
 }

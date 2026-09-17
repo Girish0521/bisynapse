@@ -26,10 +26,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinks = [
     { id: 'hero', label: 'Home', href: '/' },
-    { id: 'services', label: 'Services', href: '/#services' },
-    { id: 'standards', label: 'Standards', href: '/#standards' },
+    { id: 'services', label: 'Services', href: '/services' },
+    { id: 'standards', label: 'Standards', href: '/standards' },
     { id: 'scan', label: 'Scan', href: '/scan' },
-    { id: 'architecture', label: 'About', href: '/#architecture' }
+    { id: 'assistant', label: 'Assistant', href: '/assistant' },
+    { id: 'architecture', label: 'About', href: '/about' }
   ];
 
   const handleNavClick = (link: { id: string; href: string }) => {
@@ -163,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Help Button */}
             <Link
-              href="/#help"
+              href="/support"
               className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-[#0F4C81] flex items-center space-x-1"
             >
               <HelpCircle className="w-3.5 h-3.5 text-slate-500" />

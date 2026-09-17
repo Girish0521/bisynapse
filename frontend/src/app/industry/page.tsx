@@ -11,12 +11,12 @@ import { useAuth } from '@/lib/authContext';
 function IndustryDashboardContent() {
   const { user, logout } = useAuth();
   const services = [
-    { title: 'Find Applicable Standards', desc: 'Identify Indian Standards for product engineering', icon: Search, href: '/#standards' },
-    { title: 'Certification Guidance', desc: 'Step-by-step ManakOnline e-BIS application workflow', icon: Award, href: '/#certification' },
-    { title: 'Compliance Check', desc: 'Verify mandatory QCO notifications & test parameters', icon: ShieldCheck, href: '/#certification' },
-    { title: 'Search Standards', desc: 'Deep search e-Standards database by IS number', icon: Layers, href: '/#standards' },
-    { title: 'Laboratory Information', desc: 'Locate BIS recognized & LIMS test facilities', icon: FlaskConical, href: '/#labs' },
-    { title: 'Ask BISynapse', desc: 'AI compliance guide for manufacturers & MSMEs', icon: MessageSquare, href: '/#assistant' }
+    { title: 'Find Applicable Standards', desc: 'Identify Indian Standards for product engineering', icon: Search, href: '/standards' },
+    { title: 'Certification Guidance', desc: 'Step-by-step ManakOnline e-BIS application workflow', icon: Award, href: '/certification' },
+    { title: 'Compliance Check', desc: 'Verify mandatory QCO notifications & test parameters', icon: ShieldCheck, href: '/certification' },
+    { title: 'Search Standards', desc: 'Deep search e-Standards database by IS number', icon: Layers, href: '/standards' },
+    { title: 'Laboratory Information', desc: 'Locate BIS recognized & LIMS test facilities', icon: FlaskConical, href: '/labs' },
+    { title: 'Ask BISynapse', desc: 'AI compliance guide for manufacturers & MSMEs', icon: MessageSquare, href: '/assistant' }
   ];
 
   return (
@@ -40,7 +40,7 @@ function IndustryDashboardContent() {
           </div>
 
           <Link
-            href="/#standards"
+            href="/standards"
             className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-md shadow-2xs flex items-center space-x-1.5 transition-colors shrink-0"
           >
             <Search className="w-4 h-4" />

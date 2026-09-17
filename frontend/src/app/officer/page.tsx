@@ -12,11 +12,11 @@ function OfficerDashboardContent() {
   const { user, logout } = useAuth();
   const services = [
     { title: 'Product Verification', desc: 'Perform high-speed CM/L & HUID verification', icon: Scan, href: '/scan' },
-    { title: 'Certification Verification', desc: 'Inspect factory licence status and scope validity', icon: Shield, href: '/#certification' },
-    { title: 'Standards Search', desc: 'Information-dense e-Standards & gazette directory', icon: Search, href: '/#standards' },
-    { title: 'Compliance Information', desc: 'Audit Quality Control Orders & gazette notifications', icon: FileText, href: '/#certification' },
-    { title: 'Reports & Analytics', desc: 'Review market surveillance & inspection statistics', icon: BarChart3, href: '/#metrics' },
-    { title: 'Search / Analytics', desc: 'Query enforcement & complaint case files', icon: Database, href: '/#search' }
+    { title: 'Certification Verification', desc: 'Inspect factory licence status and scope validity', icon: Shield, href: '/certification' },
+    { title: 'Standards Search', desc: 'Information-dense e-Standards & gazette directory', icon: Search, href: '/standards' },
+    { title: 'Compliance Information', desc: 'Audit Quality Control Orders & gazette notifications', icon: FileText, href: '/certification' },
+    { title: 'Reports & Analytics', desc: 'Review market surveillance & inspection statistics', icon: BarChart3, href: '/about' },
+    { title: 'Search / Analytics', desc: 'Query enforcement & complaint case files', icon: Database, href: '/standards' }
   ];
 
   const auditSummary = [

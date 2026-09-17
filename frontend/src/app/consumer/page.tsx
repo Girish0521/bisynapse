@@ -13,11 +13,11 @@ function ConsumerDashboardContent() {
   const { user, logout } = useAuth();
   const services = [
     { title: 'Scan & Verify Product', desc: 'Scan ISI mark or QR code on product label', icon: Scan, href: '/scan' },
-    { title: 'Search BIS Standard', desc: 'Find IS standards matching products', icon: Search, href: '/#standards' },
-    { title: 'Check Certification', desc: 'Verify CM/L or CRS licence numbers', icon: Award, href: '/#certification' },
-    { title: 'Hallmark Verification', desc: 'Verify 6-digit HUID code on gold jewellery', icon: Gem, href: '/#hallmarking' },
-    { title: 'Ask BISynapse', desc: 'Conversational AI assistant for BIS queries', icon: MessageSquare, href: '/#assistant' },
-    { title: 'Report a Product', desc: 'Report fake ISI marks or sub-standard goods', icon: Flag, href: '/#consumer' }
+    { title: 'Search BIS Standard', desc: 'Find IS standards matching products', icon: Search, href: '/standards' },
+    { title: 'Check Certification', desc: 'Verify CM/L or CRS licence numbers', icon: Award, href: '/certification' },
+    { title: 'Hallmark Verification', desc: 'Verify 6-digit HUID code on gold jewellery', icon: Gem, href: '/hallmarking' },
+    { title: 'Ask BISynapse', desc: 'Conversational AI assistant for BIS queries', icon: MessageSquare, href: '/assistant' },
+    { title: 'Report a Product', desc: 'Report fake ISI marks or sub-standard goods', icon: Flag, href: '/support' }
   ];
 
   const [scanHistory, setScanHistory] = useState<any[]>([

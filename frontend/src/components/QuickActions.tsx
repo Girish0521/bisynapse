@@ -18,11 +18,11 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   const t = translations[currentLang];
 
   const cards = [
-    { id: 'standards', title: t.action1Title, description: t.action1Desc, buttonText: t.action1Btn, icon: Search, href: '/#standards' },
-    { id: 'certification', title: t.action2Title, description: t.action2Desc, buttonText: t.action2Btn, icon: Award, href: '/#certification' },
-    { id: 'labs', title: t.action3Title, description: t.action3Desc, buttonText: t.action3Btn, icon: FlaskConical, href: '/#labs' },
-    { id: 'hallmarking', title: t.action4Title, description: t.action4Desc, buttonText: t.action4Btn, icon: Gem, href: '/#hallmarking' },
-    { id: 'consumer', title: t.action5Title, description: t.action5Desc, buttonText: t.action5Btn, icon: HeartHandshake, href: '/#consumer' },
+    { id: 'standards', title: t.action1Title, description: t.action1Desc, buttonText: t.action1Btn, icon: Search, href: '/standards' },
+    { id: 'certification', title: t.action2Title, description: t.action2Desc, buttonText: t.action2Btn, icon: Award, href: '/certification' },
+    { id: 'labs', title: t.action3Title, description: t.action3Desc, buttonText: t.action3Btn, icon: FlaskConical, href: '/labs' },
+    { id: 'hallmarking', title: t.action4Title, description: t.action4Desc, buttonText: t.action4Btn, icon: Gem, href: '/hallmarking' },
+    { id: 'consumer', title: t.action5Title, description: t.action5Desc, buttonText: t.action5Btn, icon: HeartHandshake, href: '/support' },
     { id: 'scanner', title: t.action6Title, description: t.action6Desc, buttonText: t.action6Btn, icon: Scan, href: '/scan' }
   ];
 

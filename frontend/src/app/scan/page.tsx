@@ -492,7 +492,7 @@ export default function ScanPage() {
 
                 <div className="flex items-center space-x-2">
                   <Link
-                    href="/#standards"
+                    href="/standards"
                     className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded flex items-center space-x-1"
                   >
                     <BookOpen className="w-3.5 h-3.5" />
@@ -500,7 +500,7 @@ export default function ScanPage() {
                   </Link>
 
                   <Link
-                    href="/#assistant"
+                    href="/assistant"
                     className="px-4 py-2 bg-[#0F4C81] hover:bg-[#0A2540] text-white font-bold rounded flex items-center space-x-1 shadow-2xs"
                   >
                     <MessageSquare className="w-3.5 h-3.5 text-amber-400" />

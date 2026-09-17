@@ -13,10 +13,10 @@ function RetailerDashboardContent() {
   const services = [
     { title: 'Verify Product', desc: 'Verify supplier stock & manufacturer licences', icon: ShieldCheck, href: '/scan' },
     { title: 'Scan Product', desc: 'Scan barcodes or ISI QR codes on incoming inventory', icon: Scan, href: '/scan' },
-    { title: 'Check Certification', desc: 'Check validity of manufacturer CM/L or CRS registration', icon: Award, href: '/#certification' },
-    { title: 'Search Standards', desc: 'Look up Quality Control Orders (QCOs) for stock', icon: Search, href: '/#standards' },
-    { title: 'Compliance Information', desc: 'Review mandatory sales compliance regulations', icon: FileCheck, href: '/#certification' },
-    { title: 'Ask BISynapse', desc: 'Consult AI assistant on merchant obligations', icon: MessageSquare, href: '/#assistant' }
+    { title: 'Check Certification', desc: 'Check validity of manufacturer CM/L or CRS registration', icon: Award, href: '/certification' },
+    { title: 'Search Standards', desc: 'Look up Quality Control Orders (QCOs) for stock', icon: Search, href: '/standards' },
+    { title: 'Compliance Information', desc: 'Review mandatory sales compliance regulations', icon: FileCheck, href: '/certification' },
+    { title: 'Ask BISynapse', desc: 'Consult AI assistant on merchant obligations', icon: MessageSquare, href: '/assistant' }
   ];
 
   return (

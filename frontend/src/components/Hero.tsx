@@ -24,15 +24,15 @@ export function Hero({ currentLang }: HeroProps) {
             <p className="mt-7 text-lg text-slate-600 max-w-xl">{intro}. Explore standards, navigate certification, and know where to verify—with BISynapse.</p>
             <div className="flex flex-wrap gap-3 mt-8">
               <Link href="/login" className="design-button design-button-primary">Find your workspace <ArrowRight size={17} /></Link>
-              <Link href="/#standards" className="design-button design-button-secondary"><Search size={17} /> Explore standards</Link>
+              <Link href="/standards" className="design-button design-button-secondary"><Search size={17} /> Explore standards</Link>
             </div>
             <p className="text-xs text-slate-500 mt-6">Independent SIH prototype · Verify regulatory information with BIS</p>
           </div>
           <div className="hero-workspace">
             <div className="flex justify-between items-center gap-4 border-b border-white/20 pb-6"><span className="eyebrow text-slate-300">Your starting point</span><span className="text-xs rounded-full border border-white/20 px-3 py-1 text-[#9fd4cc]">Prototype</span></div>
             <h2 className="text-2xl font-semibold mt-6">From questions<br />to clearer next steps.</h2>
-            <Link href="/#standards" className="hero-workspace-row"><Search size={22} /><span className="flex-1"><span className="block text-sm font-semibold">Discover a standard</span><span className="block text-xs text-slate-300 mt-1">Search by product, material, or sector</span></span><ArrowRight size={16} /></Link>
-            <Link href="/#certification" className="hero-workspace-row"><FileText size={22} /><span className="flex-1"><span className="block text-sm font-semibold">Understand certification</span><span className="block text-xs text-slate-300 mt-1">A guided roadmap, one step at a time</span></span><ArrowRight size={16} /></Link>
+            <Link href="/standards" className="hero-workspace-row"><Search size={22} /><span className="flex-1"><span className="block text-sm font-semibold">Discover a standard</span><span className="block text-xs text-slate-300 mt-1">Search by product, material, or sector</span></span><ArrowRight size={16} /></Link>
+            <Link href="/certification" className="hero-workspace-row"><FileText size={22} /><span className="flex-1"><span className="block text-sm font-semibold">Understand certification</span><span className="block text-xs text-slate-300 mt-1">A guided roadmap, one step at a time</span></span><ArrowRight size={16} /></Link>
             <Link href="/scan" className="hero-workspace-row"><Scan size={22} /><span className="flex-1"><span className="block text-sm font-semibold">Explore product labels</span><span className="block text-xs text-slate-300 mt-1">Prototype scanner and verification guidance</span></span><ArrowRight size={16} /></Link>
           </div>
         </div>
