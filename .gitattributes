@@ -1,0 +1,4 @@
+# Corpus hashes cover exact bytes, including line endings.
+data/**/*.json text eol=lf
+data/**/*.jsonl text eol=lf
+data/raw/*.pdf binary

@@ -14,7 +14,7 @@ SOURCES = [
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 def save(p,v):
  p.parent.mkdir(parents=True,exist_ok=True)
- p.write_text(json.dumps(v,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ p.write_bytes((json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode('utf-8'))
 def build():
  docs=[]; chunks=[]
  for did,name,url,authority,kind in SOURCES:
@@ -37,7 +37,7 @@ def build():
  statuses={d['document_id']:d['retrieval_status'] for d in docs}
  for chunk in chunks: chunk['retrieval_status']=statuses[chunk['document_id']]
  save(ROOT/'data/sources/manifest.json',dict(schema_version='1.0.0',documents=docs,coverage_gaps=['Original October 2024 Gazette: official server returned HTML instead of PDF','Verified laboratory records','Full-standard text'],limitations=['Page chunks, not clause-aware parsing','Tables and non-English extraction require visual review','Reuse rights unconfirmed']))
- (ROOT/'data/processed/chunks.jsonl').write_text(''.join(json.dumps(c,ensure_ascii=False)+'\n' for c in chunks),encoding='utf-8')
+ (ROOT/'data/processed/chunks.jsonl').write_bytes(''.join(json.dumps(c,ensure_ascii=False)+'\n' for c in chunks).encode('utf-8'))
  save(ROOT/'data/sources/regulatory_applicability.json',dict(schema_version='1.0.0',review_status='partial',timeline=[dict(date='2025-12-17',effective_date='2026-01-01',supporting_chunk_ids=['fssai-testing-20251217-p1'],statement='Testing scheme effective 1 January 2026; original October 2024 amendment remains uncollected.')]))
  save(ROOT/'data/eval/eval_questions_water.json',dict(schema_version='1.0.0',review_status='draft',questions=[dict(eval_id='effective-date',query='When does the December 2025 testing scheme take effect?',expected_behavior='answer_with_evidence',expected_answer='1 January 2026',supporting_chunk_ids=['fssai-testing-20251217-p1']),dict(eval_id='file-number',query='What is the file number of the testing order?',expected_behavior='answer_with_evidence',expected_answer='RCD-15001/19/2025-Regulatory-FSSAI',supporting_chunk_ids=['fssai-testing-20251217-p1']),dict(eval_id='labs',query='Which nearby laboratory is currently FSSAI notified?',expected_behavior='abstain_missing_corpus_evidence',missing_evidence_explanation='No verified laboratory directory is in this corpus.')]))
  print(f'Extracted {len(docs)} actual PDFs, {len(chunks)} page chunks')
