@@ -19,7 +19,7 @@ export const RagArchitecture: React.FC = () => {
             System Architecture & Vision Pipeline
           </h2>
           <p className="text-xs text-slate-600">
-            How BISynapse combines e-Standards indexing, vector search, QCO gazette mapping, and camera OCR verification.
+            Planned architecture beyond the current local keyword retrieval and PDF citation pilot.
           </p>
         </div>
 

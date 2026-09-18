@@ -27,14 +27,14 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
     {
       id: 'welcome-1',
       sender: 'assistant',
-      text: 'Namaste! BISynapse is an independent SIH prototype for Indian Standards and BIS service guidance. Source-grounded AI and official registry integrations are under development. Verify regulatory and product information with BIS.',
+      text: 'Namaste! This pilot retrieves captured BIS and FSSAI documents for packaged drinking water and natural mineral water. AI answers require a configured language model; citations link to PDF pages. The corpus is not a live registry or a determination of current legal applicability.',
       timestamp: 'Prototype',
       isPrototypeNotice: true,
       followUps: [
-        'What BIS standard applies to my product?',
-        'How can I verify a BIS licence?',
-        'What are the certification requirements?',
-        'How do I check a hallmark?'
+        'Which standard covers packaged drinking water?',
+        'What does the FSSAI water testing scheme cover?',
+        'What does IS 13428 cover?',
+        'What evidence is missing from this water corpus?'
       ]
     }
   ];
@@ -46,10 +46,10 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
   const messagesScrollRef = useRef<HTMLDivElement>(null);
 
   const suggestedPrompts = [
-    'What BIS standard applies to my product?',
-    'How can I verify a BIS licence?',
-    'What are the certification requirements?',
-    'How do I check a hallmark?'
+    'Which standard covers packaged drinking water?',
+    'What does the FSSAI water testing scheme cover?',
+    'What does IS 13428 cover?',
+    'What evidence is missing from this water corpus?'
   ];
 
   useEffect(() => {
@@ -59,6 +59,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
   }, [messages, isLoading]);
 
   const handleSendQuery = async (textToSend?: string, visualCtx?: VisualContext) => {
+    if (isLoading) return;
     const queryText = textToSend || inputText;
     if (!queryText.trim() && !visualCtx) return;
 
@@ -74,7 +75,8 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
     setIsLoading(true);
 
     try {
-      const response = await fetchChatResponse(queryText, visualCtx, { language: currentLang });
+      const history = messages.filter(m => !m.isPrototypeNotice || m.ragStatus).slice(-4).map(m => ({ role: m.sender, text: m.text.slice(0, 2000) }));
+      const response = await fetchChatResponse(queryText, visualCtx, { language: currentLang, history });
       setMessages((prev) => [...prev, response]);
     } catch (err) {
       console.warn('Backend chat API unavailable:', err);
@@ -130,6 +132,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
 
           <button
             onClick={handleResetChat}
+            disabled={isLoading}
             className="px-3 py-1.5 rounded border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold flex items-center space-x-1.5 transition-colors shrink-0"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -152,7 +155,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
               </div>
             </div>
             <span className="text-[10px] font-mono text-emerald-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
-              Official Reference Verified
+              Captured source pilot
             </span>
           </div>
 
@@ -172,7 +175,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                 <div className={`max-w-[92%] sm:max-w-[82%] space-y-3 ${msg.sender === 'user' ? 'bg-[#0F4C81] text-white rounded-lg px-4 py-3 text-xs sm:text-sm shadow-2xs' : 'bg-white border border-slate-200 text-slate-900 rounded-lg p-4 sm:p-5 shadow-2xs'}`}>
                   
                   <div className="flex items-center justify-between text-[10px] text-slate-400 pb-1 border-b border-slate-100">
-                    <span className="font-bold text-slate-500">{msg.sender === 'user' ? 'You' : 'BISynapse Assistant'} • {msg.timestamp}</span>
+                    <span className="font-bold text-slate-500">{msg.sender === 'user' ? 'You' : 'BISynapse Assistant'} • {/^\d{4}-/.test(msg.timestamp) ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : msg.timestamp}</span>
                     {msg.sender === 'assistant' && <span>Verify with official sources</span>}
                   </div>
 
@@ -226,7 +229,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                   {msg.sources && msg.sources.length > 0 && (
                     <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs">
                       <span className="text-[10px] font-bold text-slate-500 tracking-wider block">
-                        Official BIS Sources:
+                        Retrieved source passages:
                       </span>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {msg.sources.map((src, idx) => (
@@ -242,6 +245,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
                               <ExternalLink className="w-3 h-3 shrink-0" />
                             </div>
                             {src.clause && <span className="text-[10px] text-slate-500 block">{src.clause}</span>}
+                            {src.excerpt && <span className="mt-2 text-xs text-slate-600 block whitespace-pre-wrap max-h-40 overflow-auto">{src.excerpt}</span>}
                           </a>
                         ))}
                       </div>
@@ -330,6 +334,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
               )}
 
               <input
+                aria-label="Ask about water standards"
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -339,7 +344,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
 
               <button
                 type="submit"
-                disabled={!inputText.trim()}
+                disabled={isLoading || !inputText.trim()}
                 className="px-4 py-2 bg-[#0F4C81] hover:bg-[#0A2540] text-white font-bold text-xs rounded shadow-2xs disabled:opacity-40 flex items-center space-x-1 shrink-0"
               >
                 <span>Send</span>

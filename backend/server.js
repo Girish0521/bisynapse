@@ -8,7 +8,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const db = require('./lib/db');
-const { generateAssistantResponse } = require('./lib/mockAiLogic');
+const { answer } = require('./lib/rag/assistant');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -31,7 +31,25 @@ app.use(cors({
 }));
 
 app.disable('x-powered-by');
+app.use((_req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'DENY');
+  res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
 app.use(express.json({ limit: '256kb' }));
+
+// Instance-wide budget bounds public model usage without trusting proxy headers.
+let chatWindow = { start: Date.now(), count: 0 };
+app.use('/api/chat', (req, res, next) => {
+  if (req.method !== 'POST') return next();
+  if (Date.now() - chatWindow.start >= 60000) chatWindow = { start: Date.now(), count: 0 };
+  if (++chatWindow.count > 30) {
+    res.set('Retry-After', String(Math.max(1, Math.ceil((60000 - (Date.now() - chatWindow.start)) / 1000))));
+    return res.status(429).json({ error: 'Assistant request budget reached. Please retry shortly.' });
+  }
+  next();
+});
 
 // Private history is unavailable until verified JWT identity and ownership
 // checks replace client-controlled user IDs. CORS is not authentication.
@@ -90,13 +108,16 @@ app.get('/api/standards', async (req, res) => {
 app.post('/api/standards/search', async (req, res) => {
   try {
     const { productName = '', category = '', material = '', industry = '', query = '' } = req.body || {};
+    if ([productName, category, material, industry, query].some(v => typeof v !== 'string' || v.length > 2000)) {
+      return res.status(400).json({ error: 'Invalid search input' });
+    }
     const searchTerm = query || productName || category || material || industry || '';
     const standards = await db.getStandards({ query: searchTerm, category });
 
     const formatted = standards.map(s => ({
       number: s.standard_number,
       title: s.title,
-      relevance: 0.95,
+      relevance: 0,
       whyApplies: s.description || s.scope,
       scheme: s.scheme || 'BIS Product Certification Scheme (Scheme I)',
       status: s.status || 'Mandatory (QCO)',
@@ -183,6 +204,12 @@ app.get(['/api/lims/search', '/api/labs', '/api/laboratories'], async (req, res)
   try {
     const { state, city, standard, query, simulateFailure, demo } = req.query;
 
+    if (demo !== 'true') return res.status(503).json({
+      success: false, source: 'BIS LIMS integration not configured', status: 'SOURCE_UNAVAILABLE',
+      message: 'Live laboratory retrieval is not implemented. Use the official directory or explicitly enable demo examples.',
+      officialUrl: 'https://lims.bis.gov.in/', searchUrl: 'https://lims.bis.gov.in/home/search_labs/',
+    });
+
     // 1. Check explicitly requested failure simulation for testing
     if (simulateFailure === 'true' || simulateFailure === '1') {
       return res.status(503).json({
@@ -207,7 +234,7 @@ app.get(['/api/lims/search', '/api/labs', '/api/laboratories'], async (req, res)
       city: l.city,
       supportedStandards: l.supported_standards || [],
       productCategory: l.product_category || l.services,
-      recognitionStatus: l.recognition_status || 'BIS Recognized',
+      recognitionStatus: 'Unverified demo example',
       address: l.address,
       contact: l.contact_info,
       email: l.email,
@@ -219,15 +246,13 @@ app.get(['/api/lims/search', '/api/labs', '/api/laboratories'], async (req, res)
 
     res.json({
       success: true,
-      source: 'Official BIS LIMS',
+      source: 'Prototype laboratory fixtures',
       status: 'AVAILABLE',
       retrievedAt: new Date().toISOString(),
       totalResults: formatted.length,
       officialUrl: 'https://lims.bis.gov.in/',
       searchUrl: 'https://lims.bis.gov.in/home/search_labs/',
-      disclaimer: isDemoMode
-        ? 'DEMO DATA — NOT OFFICIAL BIS VERIFICATION'
-        : 'Official laboratory recognition status verified via BIS LIMS portal.',
+      disclaimer: isDemoMode ? 'DEMO DATA — NOT OFFICIAL BIS VERIFICATION' : 'Unverified prototype records',
       results: formatted,
       labs: formatted, // Backward compatibility
     });
@@ -294,9 +319,13 @@ app.get('/api/faqs', async (req, res) => {
 // ─── 7. RAG AI Assistant Endpoints ──────────────────────────
 app.post('/api/chat', async (req, res) => {
   try {
-    const { query, message, visualContext, userId, language = 'en' } = req.body || {};
-    const q = query || message || 'Indian Standards';
-    const response = await generateAssistantResponse(q, visualContext, { userId, language });
+    const { query, message, language = 'en', history = [] } = req.body || {};
+    const q = query || message;
+    if (typeof q !== 'string' || !q.trim() || q.length > 2000 || !['en','hi','te'].includes(language) ||
+        !Array.isArray(history) || history.length > 4 || history.some(h => !h || !['user','assistant'].includes(h.role) || typeof h.text !== 'string' || h.text.length > 2000)) {
+      return res.status(400).json({ error: 'Provide a question up to 2000 characters, supported language, and at most four bounded conversation messages.' });
+    }
+    const response = await answer(q.trim(), { language, history });
     res.json(response);
   } catch (err) {
     console.error('[/api/chat] Error:', err);
@@ -307,7 +336,12 @@ app.post('/api/chat', async (req, res) => {
 // ─── 8. Product Scan & Verification Endpoints ───────────────
 app.post('/api/scan', async (req, res) => {
   try {
-    const { scanType = 'camera_isi_label', scannedValue = '', extractedInfo = {}, userId = 'consumer_demo_user' } = req.body || {};
+    const { scanType = 'camera_isi_label', scannedValue = '', extractedInfo = {} } = req.body || {};
+    if (typeof scanType !== 'string' || scanType.length > 50 || typeof scannedValue !== 'string' || scannedValue.length > 255 ||
+        !extractedInfo || typeof extractedInfo !== 'object' || Array.isArray(extractedInfo) ||
+        (extractedInfo.productName !== undefined && (typeof extractedInfo.productName !== 'string' || extractedInfo.productName.length > 500))) {
+      return res.status(400).json({ error: 'Invalid scan input' });
+    }
 
     let verificationStatus = 'NO MATCH FOUND';
     let matchedRecord = null;
@@ -317,7 +351,7 @@ app.post('/api/scan', async (req, res) => {
     if (scannedValue && scannedValue.length === 6 && !scannedValue.includes('-')) {
       const hallmark = await db.getHallmarkByHUID(scannedValue);
       if (hallmark) {
-        verificationStatus = hallmark.is_demo ? 'MATCH FOUND' : 'VERIFIED';
+        verificationStatus = hallmark.is_demo ? 'MATCH FOUND' : 'NOT VERIFIED';
         matchedRecord = hallmark;
         productName = hallmark.product_type;
       }
@@ -328,7 +362,7 @@ app.post('/api/scan', async (req, res) => {
       const products = await db.getProducts({ regNo: scannedValue });
       if (products.length > 0) {
         matchedRecord = products[0];
-        verificationStatus = matchedRecord.verification_status || (matchedRecord.is_demo ? 'MATCH FOUND' : 'VERIFIED');
+        verificationStatus = matchedRecord.is_demo ? 'MATCH FOUND' : 'NOT VERIFIED';
         productName = matchedRecord.product_name;
       }
     }
@@ -338,28 +372,18 @@ app.post('/api/scan', async (req, res) => {
       const products = await db.getProducts({ query: productName });
       if (products.length > 0) {
         matchedRecord = products[0];
-        verificationStatus = matchedRecord.is_demo ? 'MATCH FOUND' : 'VERIFIED';
+        verificationStatus = matchedRecord.is_demo ? 'MATCH FOUND' : 'NOT VERIFIED';
       }
     }
 
-    // Save scan record into database
-    const savedRecord = await db.saveScanRecord({
-      user_id: userId,
-      scan_type: scanType,
-      scanned_value: scannedValue,
-      product_name: productName,
-      extracted_information: extractedInfo,
-      verification_status: verificationStatus,
-      matched_record_id: matchedRecord ? (matchedRecord.registration_number || matchedRecord.huid || matchedRecord.id) : null,
-      is_demo: Boolean(matchedRecord?.is_demo),
-    });
+    // Public lookups do not create private records under caller-supplied IDs.
 
     res.json({
       success: true,
       verificationStatus,
       matchedRecord,
-      scanRecord: savedRecord,
-      message: `Verification complete: ${verificationStatus}`,
+      scanRecord: null,
+      message: `Prototype lookup: ${verificationStatus}. Official verification is required.`,
     });
   } catch (err) {
     console.error('[/api/scan] Error:', err);
@@ -368,32 +392,8 @@ app.post('/api/scan', async (req, res) => {
 });
 
 // ─── 9. Legacy Vision Scanner Bridge ────────────────────────
-app.post('/api/vision', async (req, res) => {
-  try {
-    const { scanType = 'kettle' } = req.body || {};
-    const { mockVisualScanPresets } = require('./lib/mockData');
-    const preset = mockVisualScanPresets[scanType] || mockVisualScanPresets['kettle'];
-
-    await db.saveScanRecord({
-      user_id: 'consumer_demo_user',
-      scan_type: scanType,
-      scanned_value: preset.certification?.licenceNumber || preset.certification?.huid || 'CM/L-8400012395',
-      product_name: preset.product?.name || 'Scanned Appliance',
-      extracted_information: preset,
-      verification_status: 'VERIFIED',
-      matched_record_id: preset.certification?.licenceNumber || preset.certification?.huid,
-      is_demo: false,
-    });
-
-    res.json({
-      success: true,
-      analysis: preset,
-      message: 'Visual analysis complete. Please verify with BIS ManakOnline portal.',
-    });
-  } catch (err) {
-    console.error('[/api/vision] Error:', err);
-    res.status(500).json({ error: err?.message || 'Vision analysis failed' });
-  }
+app.post('/api/vision', (_req, res) => {
+  res.status(503).json({ error: 'Live image analysis is not implemented. No authenticity determination was made.' });
 });
 
 // ─── 10. Query History Endpoints ─────────────────────────────
@@ -437,11 +437,16 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, _next) => {
-  console.error('[Global Server Error]', err);
-  res.status(500).json({ error: err?.message || 'Internal server error' });
+  if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON' });
+  if (err.type === 'entity.too.large') return res.status(413).json({ error: 'Request is too large' });
+  console.error('[Global Server Error]', err?.name || 'Error');
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // ─── Start Server ─────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`🚀 BIS Saarthi AI / BISynapse API running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 BIS Saarthi AI / BISynapse API running on port ${PORT}`);
+  });
+}
+module.exports = app;

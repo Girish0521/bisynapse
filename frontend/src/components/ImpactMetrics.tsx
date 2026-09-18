@@ -7,7 +7,7 @@ export const ImpactMetrics: React.FC = () => {
   const stakeholderCards = [
     { title: 'MSMEs', desc: 'Reduce time spent searching standards and certification procedures by 60%.', icon: Building2 },
     { title: 'Startups', desc: 'Quickly understand mandatory QCO compliance requirements before hardware production.', icon: Rocket },
-    { title: 'Consumers', desc: 'Instantly verify hallmarked gold HUID codes and ISI marks on products.', icon: Users },
+    { title: 'Consumers', desc: 'Find official services for checking hallmarks, HUID codes and ISI marks.', icon: Users },
     { title: 'Students', desc: 'Make Indian Standards searchable and understandable in plain language for research.', icon: GraduationCap },
     { title: 'Government Officers', desc: 'Access high-density compliance verification and regulatory reporting metrics.', icon: ShieldCheck }
   ];
@@ -51,7 +51,7 @@ export const ImpactMetrics: React.FC = () => {
           </div>
           <div>
             <span className="font-bold text-amber-400 block text-sm">24×7 Digital Access</span>
-            <span className="text-slate-300">Official BISynapse Portal Availability</span>
+            <span className="text-slate-300">Prototype Access Target</span>
           </div>
           <div>
             <span className="font-bold text-amber-400 block text-sm">Pan-India Multilingual</span>

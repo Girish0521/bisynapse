@@ -13,7 +13,7 @@ export const ConsumerSupport: React.FC<ConsumerSupportProps> = () => {
   const topics = [
     { title: 'Identify Genuine ISI Mark', desc: 'Verify ISI mark displays Indian Standard number on top and CM/L licence number at bottom.', icon: CheckCircle2 },
     { title: 'Verify CRS Registration Mark', desc: 'Electronic goods must display Registration Number (R-XXXXXXXX) and IS standard reference.', icon: CheckCircle2 },
-    { title: 'Check Licence Validity', desc: 'Cross-check CM/L numbers on BISynapse Scan & Verify or official BIS Care App.', icon: CheckCircle2 },
+    { title: 'Check Licence Validity', desc: 'Check licence validity through the official BIS Care service. Prototype scanner matches do not verify validity.', icon: CheckCircle2 },
     { title: 'Report Misuse & Counterfeit Goods', desc: 'If a product carries fake ISI marks, lodge a complaint for BIS enforcement investigation.', icon: ShieldAlert }
   ];
 
@@ -76,8 +76,8 @@ export const ConsumerSupport: React.FC<ConsumerSupportProps> = () => {
               <p className="text-[11px] mt-0.5">Lodge via BIS Care App or email consumer@bis.gov.in.</p>
             </div>
             <div className="bg-slate-800 p-3 rounded border border-slate-700">
-              <span className="font-bold text-amber-400 block">3. Enforcement Raid</span>
-              <p className="text-[11px] mt-0.5">BIS Enforcement Officers inspect premises & initiate legal prosecution.</p>
+              <span className="font-bold text-amber-400 block">3. Official Review</span>
+              <p className="text-[11px] mt-0.5">BIS reviews complaints and determines appropriate action. Submission does not guarantee an inspection or prosecution.</p>
             </div>
           </div>
         </div>

@@ -13,21 +13,15 @@ interface HallmarkingSectionProps {
 
 export const HallmarkingSection: React.FC<HallmarkingSectionProps> = () => {
   const [huidInput, setHuidInput] = useState('');
-  const [huidResult, setHuidResult] = useState<{ huid: string; purity: string; jeweller: string; ahc: string; hallmarkDate: string; articleType: string; status: string } | null>(null);
+  const [huidResult, setHuidResult] = useState<string | null>(null);
 
   const handleVerifyHuid = (e: React.FormEvent) => {
     e.preventDefault();
     if (!huidInput.trim()) return;
 
-    setHuidResult({
-      huid: huidInput.toUpperCase(),
-      purity: '22K916 (91.6% Pure Gold)',
-      jeweller: 'Certified BIS Registered Jeweller (Ref: HM/C-7281923)',
-      ahc: 'National Assaying & Hallmarking Centre, New Delhi',
-      hallmarkDate: '2024-02-18',
-      articleType: 'Gold Bangle / Ornament',
-      status: 'Verified Valid Hallmark'
-    });
+    setHuidResult(/^[A-Z0-9]{6}$/.test(huidInput.trim().toUpperCase())
+      ? 'No live HUID lookup is connected. Authenticity, purity and jeweller details cannot be confirmed. Verify with the official BIS Care service.'
+      : 'Enter exactly six letters or digits.');
   };
 
   return (
@@ -81,11 +75,12 @@ export const HallmarkingSection: React.FC<HallmarkingSectionProps> = () => {
 
         {/* HUID Verification Lookup */}
         <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 shadow-2xs mb-8 text-center max-w-xl mx-auto space-y-3">
-          <h3 className="font-bold text-sm text-[#0A2540]">HUID Verification Simulator</h3>
+          <h3 className="font-bold text-sm text-[#0A2540]">HUID Verification Guidance</h3>
           <p className="text-xs text-slate-600">Enter 6-character alphanumeric code engraved on gold jewellery:</p>
 
           <form onSubmit={handleVerifyHuid} className="flex gap-2 max-w-md mx-auto">
             <input
+              aria-label="HUID code"
               type="text"
               maxLength={6}
               value={huidInput}
@@ -98,17 +93,7 @@ export const HallmarkingSection: React.FC<HallmarkingSectionProps> = () => {
             </button>
           </form>
 
-          {huidResult && (
-            <div className="p-4 bg-white rounded border border-emerald-300 text-xs text-left space-y-2">
-              <div className="flex justify-between items-center border-b pb-1">
-                <span className="font-bold text-emerald-800">✓ {huidResult.status}</span>
-                <span className="font-mono font-bold text-[#0F4C81]">{huidResult.huid}</span>
-              </div>
-              <p><strong>Purity:</strong> {huidResult.purity}</p>
-              <p><strong>Article:</strong> {huidResult.articleType}</p>
-              <p><strong>Assay Date:</strong> {huidResult.hallmarkDate}</p>
-            </div>
-          )}
+          {huidResult && <p role="status" className="p-4 bg-amber-50 rounded border border-amber-300 text-xs text-left text-amber-900">{huidResult}</p>}
         </div>
 
       </div>

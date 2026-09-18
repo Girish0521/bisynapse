@@ -46,6 +46,26 @@ const store = {
   scanRecords: [...seedData.scanRecordsData],
 };
 
+// Seed records are examples, never evidence of certification or current limits.
+for (const records of Object.values(store)) {
+  for (const record of records) record.is_demo = true;
+}
+store.standards = store.standards.filter(s => !s.standard_number.startsWith('IS 15410'))
+  .map(s => ({ ...s, status: 'Needs Verification', source: 'Prototype fixture',
+    key_requirements: [], testing_required: [] }));
+const sourceManifest = require('../../data/sources/manifest.json');
+for (const [number, title, documentId] of [
+  ['IS 14543:2024', 'Packaged Drinking Water (Other Than Packaged Natural Mineral Water)', 'bis-pm-14543-jul2025'],
+  ['IS 13428:2024', 'Packaged Natural Mineral Water', 'bis-pm-13428-jul2024'],
+]) {
+  const document = sourceManifest.documents.find(d => d.document_id === documentId);
+  store.standards.unshift({ standard_number: number, title, category: 'Food',
+    description: 'Captured BIS product manual metadata. Full standard clauses and current mandatory applicability are not verified.',
+    searchable_text: `${number} ${title} water food fssai`, status: 'Needs Verification',
+    scheme: 'BIS product certification manual', document_url: document.official_url,
+    key_requirements: [], testing_required: [], is_demo: false });
+}
+
 // ── Database Methods ──────────────────────────────────────────
 
 async function getHealth() {

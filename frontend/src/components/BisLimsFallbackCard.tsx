@@ -31,7 +31,7 @@ export const BisLimsFallbackCard: React.FC<BisLimsFallbackCardProps> = ({
 
         <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
-          <span>Temporarily Unavailable</span>
+          <span>Retrieval Unavailable</span>
         </div>
       </div>
 
@@ -40,11 +40,11 @@ export const BisLimsFallbackCard: React.FC<BisLimsFallbackCardProps> = ({
         <div className="flex items-center space-x-2 text-rose-800">
           <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
           <h3 className="font-bold text-sm text-[#0A2540]">
-            BIS LIMS is temporarily unavailable.
+            Live laboratory retrieval is unavailable in this prototype.
           </h3>
         </div>
         <p className="text-xs text-slate-600 leading-relaxed pl-6">
-          We couldn&apos;t retrieve laboratory information from the official BIS LIMS service right now. Please try again or open the official BIS LIMS portal.
+          The prototype cannot establish current laboratory recognition or scope. Open the official directory to check, or explicitly enable demo examples.
         </p>
       </div>
 

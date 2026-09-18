@@ -38,7 +38,7 @@ export default function ScanPage() {
           ownedStream = stream;
           video.srcObject = stream;
         })
-        .catch(() => { /* Camera permission can be declined. */ });
+        .catch(() => { if (!cancelled) { setCameraActive(false); setScanStatusMessage('Camera access is unavailable. Enter the label reference manually.'); } });
     }
     return () => {
       cancelled = true;
@@ -74,11 +74,10 @@ export default function ScanPage() {
   }, [simulateLimsFailure]);
 
   const executeVerification = async (presetType: 'kettle' | 'charger' | 'hallmark' | 'manual', inputValue?: string) => {
+    if (isVerifying) return;
     setIsVerifying(true);
-    setScanStatusMessage('Scanning...');
+    setScanStatusMessage('Looking up prototype records...');
 
-    setTimeout(() => setScanStatusMessage('Reading label data...'), 250);
-    setTimeout(() => setScanStatusMessage('Verifying with BIS database registry...'), 500);
 
     const scannedValue =
       presetType === 'kettle' ? 'CM/L-8400012395' :
@@ -101,14 +100,14 @@ export default function ScanPage() {
 
       if (rec) {
         setVerificationResult({
-          status: res.verificationStatus === 'VERIFIED' ? 'VERIFIED' : (res.verificationStatus === 'MATCH FOUND' ? 'VERIFIED' : 'NEEDS_VERIFICATION'),
+          status: 'NEEDS_VERIFICATION',
           productName: rec.product_name || rec.product_type || 'Verified BIS Article',
           manufacturer: rec.manufacturer || rec.jeweller_name || 'BIS Licensed Manufacturer',
           licenceNumber: rec.registration_number || rec.huid || scannedValue,
           standardNumber: resolvedStandard,
           category: rec.category || rec.purity_description || 'Certified Goods',
-          validityStatus: rec.is_demo ? 'Active [DEMO / Sample Record]' : 'Active & Validated under Official QCO',
-          explanation: rec.hallmark_information || `This product is registered in the Bureau of Indian Standards registry under ${resolvedStandard}. Reference: ${scannedValue}.`,
+          validityStatus: rec.is_demo ? 'Demo match — authenticity not verified' : 'Requires official verification',
+          explanation: 'A prototype record matched. This does not establish product authenticity, certification or licence validity. Check the official BIS service.',
           scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           verificationMethod: method,
         });
@@ -133,68 +132,9 @@ export default function ScanPage() {
     } catch (err) {
       console.warn('Scan verification API fallback:', err);
       setIsVerifying(false);
-      setScanStatusMessage('Verification complete.');
+      setVerificationResult(null);
+      setScanStatusMessage('Product lookup is unavailable. No verification result was produced. Please use the official BIS service.');
 
-      let resolvedStandard = 'IS 302 (Part 2/Sec 3): 2007';
-
-      if (presetType === 'kettle') {
-        resolvedStandard = 'IS 302 (Part 2/Sec 3): 2007';
-        setVerificationResult({
-          status: 'VERIFIED',
-          productName: 'Electric Kettle (1.8L Stainless Steel)',
-          manufacturer: 'Pigeon Appliances India Pvt Ltd',
-          licenceNumber: 'CM/L-8400012395',
-          standardNumber: resolvedStandard,
-          category: 'Electrical & Electronics',
-          validityStatus: 'Active & Validated under Mandatory QCO',
-          explanation: 'This product bears an authentic BIS ISI Mark under IS 302-2-3. The licence CM/L-8400012395 is active and covers domestic electric heating kettles.',
-          scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          verificationMethod: method
-        });
-      } else if (presetType === 'hallmark') {
-        resolvedStandard = 'IS 1417: 2016';
-        setVerificationResult({
-          status: 'VERIFIED',
-          productName: '22K Gold Bangle / Ornament (HUID: K92A8M)',
-          manufacturer: 'Certified BIS Registered Jeweller (Ref: HM/C-7281923)',
-          licenceNumber: 'HUID: K92A8M',
-          standardNumber: resolvedStandard,
-          category: 'Jewellery & Precious Metals',
-          validityStatus: 'Verified 916 Gold Fineness Assay',
-          explanation: 'The 6-digit HUID code K92A8M was verified against official hallmarking assay records. The jewellery piece complies with mandatory IS 1417 purity standards.',
-          scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          verificationMethod: method
-        });
-      } else if (presetType === 'charger') {
-        resolvedStandard = 'IS 13252 (Part 1): 2010';
-        setVerificationResult({
-          status: 'VERIFIED',
-          productName: '65W USB-C Fast Adapter',
-          manufacturer: 'Xiaomi Technology India Pvt Ltd',
-          licenceNumber: 'R-41009823',
-          standardNumber: resolvedStandard,
-          category: 'Information Technology',
-          validityStatus: 'CRS Registration Active',
-          explanation: 'Compulsory Registration Scheme (CRS) Registration R-41009823 is valid under IS 13252 Part 1 for IT power adapter equipment.',
-          scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          verificationMethod: method
-        });
-      } else {
-        setVerificationResult({
-          status: 'NEEDS_VERIFICATION',
-          productName: inputValue || 'Entered Registration Reference',
-          manufacturer: 'Manufacturer Record Verification Pending',
-          licenceNumber: inputValue || 'REG-XXXXXXXX',
-          standardNumber: 'IS 302 / IS 13252',
-          category: 'General Goods',
-          validityStatus: 'Requires official BIS Portal confirmation',
-          explanation: 'The entered reference code was formatted correctly, but official manufacturing scope verification requires cross-checking on ManakOnline (bis.gov.in).',
-          scannedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          verificationMethod: method
-        });
-      }
-
-      loadLimsForStandard(resolvedStandard);
     }
   };
 
@@ -207,7 +147,7 @@ export default function ScanPage() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      executeVerification('kettle');
+      setScanStatusMessage('Image recognition is not implemented. No image was uploaded or analyzed. Enter a label reference manually.');
     }
   };
 
@@ -236,7 +176,7 @@ export default function ScanPage() {
             Scan & Verify
           </h1>
           <p className="text-xs sm:text-sm text-slate-600">
-            Scan a BIS QR code, registration number or product label to verify product information against official standards.
+            Explore label details and prototype matches. Product authenticity and licence validity require official BIS verification.
           </p>
 
           {/* Test Switch for LIMS Outage */}
@@ -345,6 +285,7 @@ export default function ScanPage() {
                 </label>
                 <div className="flex gap-2">
                   <input
+                    aria-label="Licence or registration reference"
                     type="text"
                     value={manualInput}
                     onChange={(e) => setManualInput(e.target.value)}

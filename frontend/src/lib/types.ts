@@ -18,9 +18,12 @@ export interface SourceReference {
   clause?: string;
   publicationDate?: string;
   category?: string;
+  excerpt?: string;
+  chunkId?: string;
 }
 
 export interface StandardResult {
+  isDemo?: boolean;
   number: string;
   title: string;
   relevance: number; // 0 to 1
@@ -47,6 +50,7 @@ export interface ChatMessage {
   sources?: SourceReference[];
   followUps?: string[];
   isPrototypeNotice?: boolean;
+  ragStatus?: string;
   visualScanContext?: {
     productName?: string;
     bisMarkDetected?: boolean;

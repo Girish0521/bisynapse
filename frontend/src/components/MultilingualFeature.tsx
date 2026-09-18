@@ -30,7 +30,7 @@ export const MultilingualFeature: React.FC<MultilingualFeatureProps> = ({
               </h2>
 
               <p className="text-xs text-slate-300 leading-relaxed font-normal">
-                BISynapse provides official technical guidance in multiple regional languages so MSMEs, retailers, jewellers, and citizens across India can access standards without language barriers.
+                The prototype offers English, Hindi and Telugu interface options. Translation and retrieval quality still require evaluation.
               </p>
 
               <div className="flex flex-wrap gap-2 pt-1">

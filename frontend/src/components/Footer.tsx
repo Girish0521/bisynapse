@@ -118,9 +118,9 @@ export const Footer: React.FC<FooterProps> = () => {
 
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-          <p>© 2026 BISynapse • Bureau of Indian Standards Digital Service Portal</p>
+          <p>© 2026 BISynapse • Independent SIH Prototype</p>
           <div className="flex items-center space-x-2">
-            <span>Official Government Service Architecture</span>
+            <span>Verify regulatory information with BIS</span>
           </div>
         </div>
 

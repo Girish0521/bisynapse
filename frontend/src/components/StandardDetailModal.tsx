@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X, ExternalLink, CheckCircle2, ShieldCheck, AlertCircle, FlaskConical, ArrowRight } from 'lucide-react';
 import { StandardResult } from '@/lib/types';
 
@@ -15,10 +15,18 @@ export const StandardDetailModal: React.FC<StandardDetailModalProps> = ({
   onClose,
   onSendToChat
 }) => {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (!standard) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const openedDialog = dialog.current;
+    openedDialog?.showModal();
+    return () => { openedDialog?.close(); previousFocus?.focus(); };
+  }, [standard]);
   if (!standard) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-sans">
+    <dialog ref={dialog} aria-labelledby="standard-dialog-title" onCancel={(event) => { event.preventDefault(); onClose(); }} className="fixed inset-0 m-auto bg-transparent backdrop:bg-slate-900/70 p-4 w-full max-w-2xl font-sans">
       <div className="bg-white rounded-lg shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden text-left flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -27,10 +35,10 @@ export const StandardDetailModal: React.FC<StandardDetailModalProps> = ({
             <span className="font-mono text-xs font-bold text-amber-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
               {standard.number}
             </span>
-            <span className="text-xs text-slate-300">Indian Standard Technical Dossier</span>
+            <span className="text-xs text-slate-300">{standard.isDemo ? 'Unverified example record' : 'Captured manual metadata'}</span>
           </div>
 
-          <button onClick={onClose} className="p-1 rounded text-slate-400 hover:text-white">
+          <button aria-label="Close standard details" onClick={onClose} className="p-1 rounded text-slate-400 hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -39,7 +47,7 @@ export const StandardDetailModal: React.FC<StandardDetailModalProps> = ({
         <div className="p-6 overflow-y-auto space-y-4 flex-1">
           
           <div>
-            <h3 className="text-base font-black text-[#0A2540] leading-snug">
+            <h3 id="standard-dialog-title" className="text-base font-black text-[#0A2540] leading-snug">
               {standard.title}
             </h3>
             <div className="mt-2 flex flex-wrap gap-2 text-xs">
@@ -122,6 +130,6 @@ export const StandardDetailModal: React.FC<StandardDetailModalProps> = ({
         </div>
 
       </div>
-    </div>
+    </dialog>
   );
 };

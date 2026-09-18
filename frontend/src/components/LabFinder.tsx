@@ -110,7 +110,7 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
             BIS Recognized Laboratories
           </h2>
           <p className="text-xs text-slate-600">
-            Search accredited testing facilities directly from the official BIS Laboratory Information Management System (LIMS).
+            Open the official BIS laboratory directory for recognition and scope checks. Demo examples are available separately.
           </p>
         </div>
 
@@ -119,6 +119,7 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
           <div className="flex-1 w-full relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
+              aria-label="Search demo laboratories"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -129,6 +130,7 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
 
           <div className="w-full md:w-48">
             <select
+              aria-label="Laboratory state"
               value={selectedState}
               onChange={(e) => setSelectedState(e.target.value)}
               className="w-full bg-slate-50 text-slate-900 text-xs px-3 py-2 rounded border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0F4C81] font-medium"
@@ -147,7 +149,7 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
         <div className="flex items-center justify-between text-xs px-1">
           <div className="flex items-center space-x-2">
             <span className="font-bold text-slate-700">Source:</span>
-            <span className="text-[#0F4C81] font-bold">Official BIS LIMS (lims.bis.gov.in)</span>
+            <span className="text-[#0F4C81] font-bold">{limsResponse?.source || 'Laboratory retrieval unavailable'}</span>
             {limsResponse?.retrievedAt && !isUnavailable && (
               <span className="text-slate-400 text-[10px]">
                 • Retrieved: {new Date(limsResponse.retrievedAt).toLocaleTimeString()}
@@ -179,7 +181,7 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
         {!isLoading && !isUnavailable && labsList.length === 0 && (
           <div className="p-8 text-center bg-white rounded-lg border border-slate-200 space-y-3">
             <AlertCircle className="w-8 h-8 text-slate-400 mx-auto" />
-            <h3 className="font-bold text-sm text-[#0A2540]">No matching laboratory records were found in BIS LIMS.</h3>
+            <h3 className="font-bold text-sm text-[#0A2540]">No matching demo laboratory records.</h3>
             <p className="text-xs text-slate-500">Try adjusting your search query or state filter, or visit the official portal.</p>
             <a
               href="https://lims.bis.gov.in/home/search_labs/"
@@ -198,7 +200,7 @@ export const LabFinder: React.FC<LabFinderProps> = ({ onSendToChat }) => {
           <div className="space-y-4">
             <div className="p-2 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-900 font-semibold flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Information retrieved from official BIS LIMS ({labsList.length} laboratories found)</span>
+              <span>Unverified demo examples ({labsList.length} records). Recognition and scope must be checked with the official directory.</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

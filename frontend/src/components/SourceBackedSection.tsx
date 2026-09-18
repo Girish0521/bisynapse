@@ -33,10 +33,10 @@ export const SourceBackedSection: React.FC = () => {
             <span>Traceable Compliance References</span>
           </div>
           <h2 className="text-2xl font-black text-[#0A2540]">
-            Every Answer Cites Official BIS Publications
+            Source Citations for Supported Water Questions
           </h2>
           <p className="text-xs text-slate-600 mt-1">
-            BISynapse cites clause numbers, gazette references, and official government portal links for technical accuracy.
+            The current water pilot retrieves captured PDF passages and physical page citations. Clause parsing and broader registry integrations remain planned.
           </p>
         </div>
 

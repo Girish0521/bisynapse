@@ -69,11 +69,12 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="standard-product" className="block text-xs font-bold text-slate-700 mb-1">
                   Product Name / Keyword
                 </label>
                 <input
                   type="text"
+                  id="standard-product"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
                   placeholder="e.g. Electric Kettle, Solar PV"
@@ -82,10 +83,11 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="standard-category" className="block text-xs font-bold text-slate-700 mb-1">
                   Product Category
                 </label>
                 <select
+                  id="standard-category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full bg-slate-50 text-slate-900 px-3 py-2 rounded border border-slate-300 text-xs focus:ring-2 focus:ring-[#0F4C81] focus:outline-none"
@@ -101,11 +103,12 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="standard-material" className="block text-xs font-bold text-slate-700 mb-1">
                   Material Composition
                 </label>
                 <input
                   type="text"
+                  id="standard-material"
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
                   placeholder="e.g. Stainless Steel, Silicon, 22K Gold"
@@ -114,11 +117,12 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="standard-industry" className="block text-xs font-bold text-slate-700 mb-1">
                   Industry / Sector
                 </label>
                 <input
                   type="text"
+                  id="standard-industry"
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
                   placeholder="e.g. MSME, Electronics"
@@ -167,6 +171,7 @@ export const StandardsFinder: React.FC<StandardsFinderProps> = ({
                   </div>
 
                   <h4 className="font-bold text-slate-900 text-sm">{std.title}</h4>
+                  <p className="text-xs font-semibold text-slate-500">{std.isDemo ? 'Unverified prototype example' : 'Captured BIS manual metadata'}</p>
                   <p className="text-xs text-slate-600"><strong>Scope:</strong> {std.whyApplies}</p>
                 </div>
 

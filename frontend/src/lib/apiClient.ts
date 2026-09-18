@@ -1,4 +1,7 @@
 import type { VisualContext, LabFacility } from './types';
+const timedFetch: typeof fetch = (input, init) => fetch(input, {
+  ...init, signal: init?.signal || AbortSignal.timeout(45000),
+});
 /**
  * BISynapse / BIS Saarthi AI API Client
  *
@@ -21,14 +24,14 @@ function endpoint(path: string): string {
 
 // ─── Health Check ──────────────────────────────────────────
 export async function fetchHealth() {
-  const res = await fetch(endpoint('/api/health'));
+  const res = await timedFetch(endpoint('/api/health'));
   if (!res.ok) throw new Error(`Health API error: ${res.status}`);
   return res.json();
 }
 
 // ─── Chat / RAG ────────────────────────────────────────────
-export async function fetchChatResponse(query: string, visualContext?: VisualContext, options?: { userId?: string; language?: string }) {
-  const res = await fetch(endpoint('/api/chat'), {
+export async function fetchChatResponse(query: string, visualContext?: VisualContext, options?: { language?: string; history?: { role: 'user' | 'assistant'; text: string }[] }) {
+  const res = await timedFetch(endpoint('/api/chat'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, visualContext, ...options }),
@@ -42,7 +45,7 @@ export async function fetchStandards(params?: { category?: string; sector?: stri
   const qs = params
     ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => !!v) as [string, string][]).toString()
     : '';
-  const res = await fetch(endpoint(`/api/standards${qs}`));
+  const res = await timedFetch(endpoint(`/api/standards${qs}`));
   if (!res.ok) throw new Error(`Standards API error: ${res.status}`);
   return res.json();
 }
@@ -54,7 +57,7 @@ export async function fetchStandardsSearch(params: {
   industry?: string;
   query?: string;
 }) {
-  const res = await fetch(endpoint('/api/standards/search'), {
+  const res = await timedFetch(endpoint('/api/standards/search'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
@@ -68,13 +71,13 @@ export async function fetchProducts(params?: { query?: string; regNo?: string; c
   const qs = params
     ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => !!v) as [string, string][]).toString()
     : '';
-  const res = await fetch(endpoint(`/api/products${qs}`));
+  const res = await timedFetch(endpoint(`/api/products${qs}`));
   if (!res.ok) throw new Error(`Products API error: ${res.status}`);
   return res.json();
 }
 
 export async function fetchProductByRegNo(regNo: string) {
-  const res = await fetch(endpoint(`/api/products/${encodeURIComponent(regNo)}`));
+  const res = await timedFetch(endpoint(`/api/products/${encodeURIComponent(regNo)}`));
   if (!res.ok) throw new Error(`Product lookup error: ${res.status}`);
   return res.json();
 }
@@ -82,7 +85,7 @@ export async function fetchProductByRegNo(regNo: string) {
 // ─── Hallmarking ───────────────────────────────────────────
 export async function fetchHallmarking(huid?: string) {
   const qs = huid ? `?huid=${encodeURIComponent(huid)}` : '';
-  const res = await fetch(endpoint(`/api/hallmarking${qs}`));
+  const res = await timedFetch(endpoint(`/api/hallmarking${qs}`));
   if (!res.ok) throw new Error(`Hallmarking API error: ${res.status}`);
   return res.json();
 }
@@ -122,7 +125,7 @@ export async function fetchLabs(params?: {
     if (params?.demo) queryMap.demo = 'true';
 
     const qs = '?' + new URLSearchParams(queryMap).toString();
-    const res = await fetch(endpoint(`/api/lims/search${qs}`), {
+    const res = await timedFetch(endpoint(`/api/lims/search${qs}`), {
       signal: controller.signal,
     });
 
@@ -168,13 +171,13 @@ export async function fetchLabs(params?: {
 // ─── Services & Certification ──────────────────────────────
 export async function fetchServices(category?: string) {
   const qs = category ? `?category=${encodeURIComponent(category)}` : '';
-  const res = await fetch(endpoint(`/api/services${qs}`));
+  const res = await timedFetch(endpoint(`/api/services${qs}`));
   if (!res.ok) throw new Error(`Services API error: ${res.status}`);
   return res.json();
 }
 
 export async function fetchCertification() {
-  const res = await fetch(endpoint('/api/certification'));
+  const res = await timedFetch(endpoint('/api/certification'));
   if (!res.ok) throw new Error(`Certification API error: ${res.status}`);
   return res.json();
 }
@@ -186,7 +189,7 @@ export async function fetchScanVerification(payload: {
   extractedInfo?: Record<string, unknown>;
   userId?: string;
 }) {
-  const res = await fetch(endpoint('/api/scan'), {
+  const res = await timedFetch(endpoint('/api/scan'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -196,7 +199,7 @@ export async function fetchScanVerification(payload: {
 }
 
 export async function fetchVisionAnalysis(scanType: string) {
-  const res = await fetch(endpoint('/api/vision'), {
+  const res = await timedFetch(endpoint('/api/vision'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ scanType }),
@@ -208,14 +211,14 @@ export async function fetchVisionAnalysis(scanType: string) {
 // ─── History & FAQs ────────────────────────────────────────
 export async function fetchHistory(userId?: string) {
   const qs = userId ? `?userId=${encodeURIComponent(userId)}` : '';
-  const res = await fetch(endpoint(`/api/history${qs}`));
+  const res = await timedFetch(endpoint(`/api/history${qs}`));
   if (!res.ok) throw new Error(`History API error: ${res.status}`);
   return res.json();
 }
 
 export async function fetchFaqs(category?: string) {
   const qs = category ? `?category=${encodeURIComponent(category)}` : '';
-  const res = await fetch(endpoint(`/api/faqs${qs}`));
+  const res = await timedFetch(endpoint(`/api/faqs${qs}`));
   if (!res.ok) throw new Error(`FAQs API error: ${res.status}`);
   return res.json();
 }
