@@ -4,26 +4,24 @@ import React from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { Shield, Scan, Search, FileText, BarChart3, Database, ArrowRight } from 'lucide-react';
+import { Shield, Scan, Search, FileText, ArrowRight } from 'lucide-react';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useAuth } from '@/lib/authContext';
 
 function OfficerDashboardContent() {
   const { user, logout } = useAuth();
   const services = [
-    { title: 'Product Verification', desc: 'Perform high-speed CM/L & HUID verification', icon: Scan, href: '/scan' },
-    { title: 'Certification Verification', desc: 'Inspect factory licence status and scope validity', icon: Shield, href: '/certification' },
-    { title: 'Standards Search', desc: 'Information-dense e-Standards & gazette directory', icon: Search, href: '/standards' },
-    { title: 'Compliance Information', desc: 'Audit Quality Control Orders & gazette notifications', icon: FileText, href: '/certification' },
-    { title: 'Reports & Analytics', desc: 'Review market surveillance & inspection statistics', icon: BarChart3, href: '/about' },
-    { title: 'Search / Analytics', desc: 'Query enforcement & complaint case files', icon: Database, href: '/standards' }
+    { title: 'Product Information', desc: 'Enter a licence reference and follow official verification links. Live verification is not connected.', icon: Scan, href: '/scan' },
+    { title: 'Certification Guidance', desc: 'Explore certification pathways and official services. No factory licence status is verified here.', icon: Shield, href: '/certification' },
+    { title: 'Standards Search', desc: 'Search captured water-manual metadata and labelled examples. Full standards are not included.', icon: Search, href: '/standards' },
+    { title: 'Water Document Assistant', desc: 'Retrieve captured BIS/FSSAI PDF passages. AI answers require a configured model.', icon: FileText, href: '/assistant' }
   ];
 
   const auditSummary = [
-    { title: 'Active CM/L Licences', count: '48,290', status: 'National Scope' },
-    { title: 'CRS Registrations', count: '22,410', status: 'MeitY / Electronic' },
-    { title: 'Hallmark AHC Centres', count: '1,420', status: 'IS 1417 Active' },
-    { title: 'Surveillance Audits', count: '3,840', status: 'Q3 2026 Completed' }
+    { title: 'Licence registry', status: 'Not connected' },
+    { title: 'CRS registry', status: 'Not connected' },
+    { title: 'Hallmark centre registry', status: 'Not connected' },
+    { title: 'Surveillance reports', status: 'Not implemented' }
   ];
 
   return (
@@ -37,19 +35,19 @@ function OfficerDashboardContent() {
           <div className="space-y-1">
             <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded bg-[#0F4C81] text-amber-400 text-xs font-bold">
               <Shield className="w-3.5 h-3.5" />
-              <span>Government Officer Regulatory Oversight</span>
+              <span>Officer Prototype Workspace</span>
             </div>
             <h1 className="text-2xl font-black text-white">
               Welcome, {user?.name || 'Officer'}
             </h1>
             <p className="text-xs text-slate-300">
-              Access high-density regulatory verification tools, market surveillance reports, and QCO analytics.
+              Explore source documents and public guidance tools. This workspace does not provide official enforcement access or live surveillance data.
             </p>
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
             <span className="px-3 py-1 bg-slate-800 text-amber-400 font-mono text-xs font-bold rounded border border-slate-700">
-              OFFICER LEVEL-A (AUTHORIZED)
+              PROTOTYPE ACCESS APPROVED
             </span>
           </div>
         </div>
@@ -59,8 +57,7 @@ function OfficerDashboardContent() {
           {auditSummary.map((item, idx) => (
             <div key={idx} className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs space-y-1">
               <span className="text-[11px] font-bold text-slate-500 block">{item.title}</span>
-              <span className="text-2xl font-black text-[#0A2540] block">{item.count}</span>
-              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded inline-block">
+              <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded inline-block">
                 {item.status}
               </span>
             </div>
@@ -69,7 +66,7 @@ function OfficerDashboardContent() {
 
         {/* Officer Services Grid */}
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-[#0A2540]">Regulatory Oversight Modules</h2>
+          <h2 className="text-lg font-bold text-[#0A2540]">Available Guidance Tools</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {services.map((s, idx) => {
@@ -91,7 +88,7 @@ function OfficerDashboardContent() {
                   </div>
 
                   <div className="pt-4 mt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-[#0F4C81]">
-                    <span>Execute Tool</span>
+                    <span>Open tool</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </Link>

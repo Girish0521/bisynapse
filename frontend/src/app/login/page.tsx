@@ -50,7 +50,7 @@ function LoginContent() {
       <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {roles.map(({ id, title, description, icon: Icon }) => (
-            <button key={id} type="button" disabled={isAuthenticating}
+            <button key={id} type="button" disabled={isAuthenticating} aria-pressed={selectedRole === id}
               onClick={() => { setSelectedRole(id); setAuthError(null); }}
               className={`p-4 rounded-lg border text-left flex gap-3 ${selectedRole === id
                 ? 'bg-[#0F4C81] text-white border-[#0A2540]' : 'bg-slate-50 text-slate-800 border-slate-200'}`}>
@@ -65,7 +65,9 @@ function LoginContent() {
         </div>
         {selectedRole === 'officer' && (
           <p className="text-xs text-amber-800 bg-amber-50 p-3 rounded">
-            Sign-in verifies your account. Officer access requires separate administrator approval.
+            Sign in with the Google account approved by the prototype administrator. Choosing this category
+            does not grant officer access. If your account has not been approved, sign in first and ask the
+            project administrator to approve that same account. After approval, sign out and sign in again.
           </p>
         )}
         {authError && (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserRole } from '@/lib/types';
 import { useAuth } from '@/lib/authContext';
@@ -18,18 +18,33 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   allowedRole,
   requireOfficerAuth = false,
 }) => {
-  const { user, role, isLoading } = useAuth();
+  const { user, role, isLoading, logout } = useAuth();
+  const [isChangingAccount, setIsChangingAccount] = useState(false);
+  const [changeError, setChangeError] = useState<string | null>(null);
   const router = useRouter();
   const roleAllowed = !allowedRole || (role && (Array.isArray(allowedRole)
     ? allowedRole.includes(role) : allowedRole === role));
   const officerRequired = requireOfficerAuth || role === 'officer';
   const accessDenied = Boolean(user && (!roleAllowed || (officerRequired && !user.isOfficerAuthorized)));
+  const loginUrl = typeof allowedRole === 'string' ? `/login?role=${allowedRole}` : '/login';
+
+  async function changeAccount() {
+    setIsChangingAccount(true);
+    setChangeError(null);
+    try {
+      await logout();
+      router.replace(loginUrl);
+    } catch {
+      setChangeError('Unable to sign out. Please try again before signing in with another account.');
+      setIsChangingAccount(false);
+    }
+  }
 
   useEffect(() => {
     if (isLoading) return;
 
-    if (!user) router.replace('/login');
-  }, [user, isLoading, router]);
+    if (!user) router.replace(loginUrl);
+  }, [user, isLoading, router, loginUrl]);
 
   if (isLoading) {
     return (
@@ -53,36 +68,41 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 
           <div className="space-y-2">
             <h1 className="text-xl font-extrabold text-[#0A2540]">
-              Access Restricted — Government Officer Portal
+              {officerRequired ? 'Access Restricted — Officer Prototype Portal' : 'Access Restricted — Account Category'}
             </h1>
             <p className="text-xs text-slate-600 leading-relaxed">
-              You do not have the required authorization to access the Government Officer Regulatory Portal. Access is restricted to verified BIS regulatory officers with official credentials.
+              {officerRequired
+                ? 'This account has not been approved for the officer prototype portal. Approval by the project administrator does not establish official BIS credentials.'
+                : 'Your current account category does not match this portal. Choose the appropriate category when signing in.'}
             </p>
           </div>
 
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-start space-x-2">
             <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
             <span>
-              If you require officer access, request administrative approval for your authenticated account.
+              {officerRequired
+                ? 'Ask the project administrator to approve the account you used to sign in. After approval, sign out and sign in again.'
+                : 'You can return to the public services or sign in using another account category.'}
             </span>
           </div>
 
           <div className="pt-2 flex items-center space-x-3">
             <Link
-              href="/consumer"
+              href="/services"
               className="flex-1 py-2.5 bg-[#0F4C81] hover:bg-[#0A2540] text-white font-bold text-xs rounded text-center transition-colors flex items-center justify-center space-x-1.5"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Return to Consumer Portal</span>
+              <span>Public services</span>
             </Link>
 
-            <Link
-              href="/login"
-              className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded transition-colors"
+            <button
+              type="button" onClick={() => { void changeAccount(); }} disabled={isChangingAccount}
+              className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded transition-colors disabled:opacity-50"
             >
-              Change Account
-            </Link>
+              {isChangingAccount ? 'Signing out...' : 'Change Account'}
+            </button>
           </div>
+          {changeError && <p role="alert" className="text-xs text-rose-700">{changeError}</p>}
         </div>
       </div>
     );
