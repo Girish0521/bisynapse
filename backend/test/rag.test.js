@@ -22,6 +22,20 @@ test('unsupported product with water history abstains', async () => {
   const result = await answer('What about a kettle?', {history:[{role:'user',text:query}]}, () => { throw Error('Should not call'); });
   assert.equal(result.ragStatus,'abstained');
 });
+test('ambiguous water questions clarify and unsupported live lookups abstain without provider calls', async () => {
+  const cases = [
+    ['Can I use this source for packaged water?', 'clarification'],
+    ['What packaging rules apply to my water product?', 'clarification'],
+    ['Which nearby laboratory is currently FSSAI notified for my water tests?', 'abstained'],
+    ['Is licence CM/L-1234567 currently valid in the live BIS registry?', 'abstained'],
+    ['What is the exact permissible arsenic limit in the full text of IS 10500?', 'abstained'],
+  ];
+  for (const [question, status] of cases) {
+    const result = await answer(question, {}, () => { throw Error('Should not call'); });
+    assert.equal(result.ragStatus, status, question);
+    assert.equal(result.sources.length, 0);
+  }
+});
 test('Hindi and Telugu water-testing terms retrieve FSSAI evidence', async () => {
   for (const [query, language] of [
     ['FSSAI जल परीक्षण योजना में क्या शामिल है?', 'hi'],
@@ -34,6 +48,18 @@ test('Hindi and Telugu water-testing terms retrieve FSSAI evidence', async () =>
     });
     assert.equal(result.ragStatus,'answered');
     assert.ok(citations.some(citation => citation.startsWith('fssai-testing-20251217')));
+  }
+});
+test('domain-aware retrieval ranks standards and multilingual controls', () => {
+  const cases = [
+    ['Which standard covers packaged drinking water?', 'bis-pm-14543-jul2025', 1],
+    ['Which standard applies to natural mineral water?', 'bis-pm-13428-jul2024', 1],
+    ['पैकेज्ड पानी की शेल्फ लाइफ कैसे तय होती है?', 'bis-pm-14543-jul2025', 31],
+    ['కొత్త నీటి వనరుకు ఏ అనుమతి అవసరం?', 'bis-pm-14543-jul2025', 51],
+  ];
+  for (const [question, documentId, page] of cases) {
+    const top = retrieve(require('../lib/rag/assistant').retrievalAliases(question), 5);
+    assert.ok(top.slice(0,3).some(hit => hit.document_id === documentId && hit.page_physical === page), question);
   }
 });
 test('invalid citation is repaired exactly once', async () => {

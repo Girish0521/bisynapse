@@ -1,0 +1,27 @@
+{
+  "dataset_id": "water-eval-v1",
+  "dataset_review_status": "provenance_validated_pending_domain_review",
+  "result_status": "provisional_regression_results",
+  "retrieval": {
+    "scope": "all 38 answer-with-evidence cases",
+    "recall_at_3_percent": 100,
+    "recall_at_5_percent": 100,
+    "mean_reciprocal_rank_at_5": 0.947,
+    "command": "npm run eval:retrieval"
+  },
+  "held_out_behavior": {
+    "scope": "10 clarification and abstention cases",
+    "behavior_accuracy_percent": 100,
+    "answer_key_coverage_percent": 100,
+    "citation_page_accuracy_percent": 100,
+    "provider_calls_required": false,
+    "command": "npm run eval:live -- --split held_out"
+  },
+  "not_measured": [
+    "Provider-generated answer accuracy across the 38 answerable cases",
+    "Independent domain-expert correctness review",
+    "Generalization to questions outside this authored regression dataset",
+    "Latency under deployed production conditions"
+  ],
+  "claim_guidance": "These numbers describe this versioned water-corpus regression suite only. They are not a claim of general AI answer accuracy."
+}
