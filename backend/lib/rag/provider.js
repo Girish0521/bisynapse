@@ -4,8 +4,8 @@ function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 async function generate(input) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error('PROVIDER_NOT_CONFIGURED');
-  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.6-flash';
+  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || '';
   const models = [...new Set([primaryModel, fallbackModel].filter(Boolean))];
   const deadline = Date.now() + 40000;
   let response;

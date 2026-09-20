@@ -52,10 +52,25 @@ test('repeated malformed JSON is bounded to two calls', async () => {
   const result=await answer(query,{},()=>{calls++; throw new SyntaxError('bad JSON');});
   assert.equal(calls,2); assert.equal(result.ragStatus,'validation_failed');
 });
-test('provider outage returns passages without retrying',async()=>{
+test('non-allowlisted provider outage returns passages without retrying',async()=>{
   let calls=0;
-  const result=await answer(query,{},()=>{calls++; throw Error('PROVIDER_HTTP_429');});
+  const result=await answer('What source-water controls apply?',{},()=>{calls++; throw Error('PROVIDER_HTTP_429');});
   assert.equal(calls,1); assert.equal(result.ragStatus,'provider_unavailable'); assert.ok(result.sources.length);
+});
+test('reviewed demo questions use verified PDF fallbacks for 429, 503 and timeout',async()=>{
+  const cases = [
+    ['Which standard covers packaged drinking water?', 'PROVIDER_HTTP_429_RESOURCE_EXHAUSTED', ['1']],
+    ['What does the FSSAI water testing scheme cover?', 'PROVIDER_HTTP_503_UNAVAILABLE', ['3','16']],
+    ['What does IS 13428 cover?', 'PROVIDER_TIMEOUT', ['1']],
+    ['What evidence is missing from this water corpus?', 'PROVIDER_HTTP_429', ['1','1','3']],
+  ];
+  for (const [question,error,pages] of cases) {
+    const result=await answer(question,{},()=>{throw Error(error);});
+    assert.equal(result.ragStatus,'verified_fallback');
+    assert.equal(result.providerFallback,true);
+    assert.deepEqual(result.sources.map(source=>source.page),pages);
+    assert.ok(result.sources.every(source=>source.excerpt && source.url.includes(`#page=${source.page}`)));
+  }
 });
 test('null citations and fabricated quotes fail validation',()=>{
   const evidence=retrieve(query);
@@ -76,6 +91,24 @@ test('provider parses REST model_output and ignores thought steps',async()=>{
   try { assert.equal((await require('../lib/rag/provider').generate('{}')).status,'abstained'); }
   finally { global.fetch=oldFetch; if(oldKey===undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY=oldKey; }
 });
+test('provider defaults to Gemini 3.6 Flash without enabling an optional fallback',async()=>{
+  const oldFetch=global.fetch; const oldKey=process.env.GEMINI_API_KEY;
+  const oldModel=process.env.GEMINI_MODEL; const oldFallback=process.env.GEMINI_FALLBACK_MODEL;
+  process.env.GEMINI_API_KEY='test-key'; delete process.env.GEMINI_MODEL; delete process.env.GEMINI_FALLBACK_MODEL;
+  let calls=0;
+  global.fetch=async(_url,options)=>{
+    calls++;
+    assert.equal(JSON.parse(options.body).model,'gemini-3.6-flash');
+    return {ok:true,json:async()=>({status:'completed',steps:[{type:'model_output',content:[{type:'text',text:JSON.stringify({status:'abstained'})}]}]})};
+  };
+  try { await require('../lib/rag/provider').generate('{}'); assert.equal(calls,1); }
+  finally {
+    global.fetch=oldFetch;
+    if(oldKey===undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY=oldKey;
+    if(oldModel===undefined) delete process.env.GEMINI_MODEL; else process.env.GEMINI_MODEL=oldModel;
+    if(oldFallback===undefined) delete process.env.GEMINI_FALLBACK_MODEL; else process.env.GEMINI_FALLBACK_MODEL=oldFallback;
+  }
+});
 test('provider reports bounded timeout without leaking request data',async()=>{
   const oldFetch=global.fetch; const oldKey=process.env.GEMINI_API_KEY;
   process.env.GEMINI_API_KEY='test-key';
@@ -95,12 +128,12 @@ test('provider retries one transient service failure',async()=>{
 test('provider falls back once when the primary model reaches its quota',async()=>{
   const oldFetch=global.fetch; const oldKey=process.env.GEMINI_API_KEY;
   const oldModel=process.env.GEMINI_MODEL; const oldFallback=process.env.GEMINI_FALLBACK_MODEL;
-  process.env.GEMINI_API_KEY='test-key'; process.env.GEMINI_MODEL='gemini-3.8-flash';
-  process.env.GEMINI_FALLBACK_MODEL='gemini-3.6-flash'; let calls=0;
+  process.env.GEMINI_API_KEY='test-key'; process.env.GEMINI_MODEL='gemini-3.6-flash';
+  process.env.GEMINI_FALLBACK_MODEL='gemini-3.8-flash'; let calls=0;
   global.fetch=async(_url,options)=>{
     const model=JSON.parse(options.body).model; calls++;
-    if(calls===1) { assert.equal(model,'gemini-3.8-flash'); return {ok:false,status:429,json:async()=>({error:{status:'RESOURCE_EXHAUSTED'}})}; }
-    assert.equal(model,'gemini-3.6-flash');
+    if(calls===1) { assert.equal(model,'gemini-3.6-flash'); return {ok:false,status:429,json:async()=>({error:{status:'RESOURCE_EXHAUSTED'}})}; }
+    assert.equal(model,'gemini-3.8-flash');
     return {ok:true,json:async()=>({status:'completed',steps:[{type:'model_output',content:[{type:'text',text:JSON.stringify({status:'abstained'})}]}]})};
   };
   try { assert.equal((await require('../lib/rag/provider').generate('{}')).status,'abstained'); assert.equal(calls,2); }

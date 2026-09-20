@@ -1,6 +1,6 @@
 # Water-sector RAG pilot
 
-The chat endpoint uses local BM25-style keyword retrieval over captured PDF passages, followed by Gemini structured generation. This is retrieval-augmented generation without embeddings, a vector database, or a Supabase migration. Configure GEMINI_API_KEY, GEMINI_MODEL and GEMINI_FALLBACK_MODEL in the backend environment; never expose the key through NEXT_PUBLIC variables. The defaults use Gemini 3.8 Flash first and Gemini 3.6 Flash once when the primary model reaches a per-model free-tier limit. Provider quotas and free-tier availability depend on the account and selected model.
+The chat endpoint uses local BM25-style keyword retrieval over captured PDF passages, followed by Gemini structured generation. This is retrieval-augmented generation without embeddings, a vector database, or a Supabase migration. Configure GEMINI_API_KEY and GEMINI_MODEL in the backend environment; never expose the key through NEXT_PUBLIC variables. The default model is Gemini 3.6 Flash. GEMINI_FALLBACK_MODEL is optional and may be set to Gemini 3.8 Flash only when that model has available quota. Provider quotas and free-tier availability depend on the account and selected model.
 
 The corpus must be deployed with backend/ and its sibling data/ directory. Runtime verifies PDF/extraction SHA-256 hashes and exact page text before indexing. Historical manuals and visibly damaged font extraction are excluded. Sources remain pending full human review; source capture does not establish current legal applicability. Hindi/Telugu response instructions are supported, but multilingual retrieval quality is not established.
 
@@ -10,7 +10,7 @@ Successful grounded answers for identical, history-free questions are kept in a 
 
 The server checks evidence IDs and exact quoted text, and attaches official manifest URLs and physical PDF page numbers. These checks establish citation provenance, not semantic entailment of every generated claim. Human review and a larger evidence-backed evaluation set are still necessary. Current first-page font corruption prevents reliable extraction of some FSSAI order details; consult the source PDF. No live laboratory registry or full licensed standards are supplied.
 
-Without a model key, chat returns retrieved passages with provider_unavailable rather than a simulated answer. The Next.js chat route proxies the Express endpoint or returns 503 when unconfigured. Other prototype features outside chat may still use fixtures.
+Without a model key, chat returns retrieved passages with provider_unavailable rather than a simulated answer. If a model request returns 429, 503 or times out, the four exact suggested demo questions can use manually reviewed answers with exact quotations from visually checked PDF pages. This allowlist is not used for other questions or other failures. The Next.js chat route proxies the Express endpoint or returns 503 when unconfigured. Other prototype features outside chat may still use fixtures.
 
 Run `npm test` in backend/ and `npm run lint` / `npm run build` in frontend/. Run `python scripts/ingestion/validate_dataset.py` from the project root for corpus integrity. Tests use injected provider responses and exercise retrieval, clarification, abstention, citation repair, outage handling and REST parsing; they are not a live model evaluation.
 

@@ -2,6 +2,7 @@ const { retrieve } = require('./retrieval');
 const { generate } = require('./provider');
 const { prompt } = require('./prompts');
 const { validateAnswer } = require('./validation');
+const { findVerifiedAnswer, supportsVerifiedFallback } = require('./verifiedAnswers');
 function message(text, status, sources = [], extra = {}) {
   return { id: 'rag-'+crypto.randomUUID(), sender:'assistant', timestamp:new Date().toISOString(), text, sources,
     ragStatus:status, isPrototypeNotice:true, ...extra };
@@ -37,6 +38,16 @@ async function answer(query, { language='en', history=[] } = {}, provider=genera
     catch (error) {
       if (error instanceof SyntaxError) { feedback = 'Return valid JSON matching the response schema.'; continue; }
       console.warn('RAG provider unavailable:', error instanceof Error ? error.message : 'PROVIDER_UNKNOWN_ERROR');
+      if (supportsVerifiedFallback(error)) {
+        try {
+          const verified = findVerifiedAnswer(query);
+          if (verified) return message(verified.answer, 'verified_fallback', verified.sources, {
+            followUps: [], providerFallback: true,
+          });
+        } catch (fallbackError) {
+          console.warn('Verified fallback unavailable:', fallbackError instanceof Error ? fallbackError.message : 'FALLBACK_UNKNOWN_ERROR');
+        }
+      }
       return message('The language model is unavailable or not configured. Retrieved passages are available below, but no AI answer or verification was generated.', 'provider_unavailable', evidence.slice(0,3).map(source));
     }
     feedback = validateAnswer(value,evidence);
