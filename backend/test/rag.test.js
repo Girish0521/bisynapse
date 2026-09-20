@@ -53,9 +53,19 @@ test('provider parses REST model_output and ignores thought steps',async()=>{
   process.env.GEMINI_API_KEY='test-key';
   global.fetch=async(url,options)=>{
     const body=JSON.parse(options.body);
+    assert.equal(url,'https://generativelanguage.googleapis.com/v1beta/interactions');
     assert.equal(body.store,false); assert.equal(body.generation_config.max_output_tokens,1600);
+    assert.ok(body.system_instruction.includes('Answer only from supplied evidence'));
+    assert.equal(body.response_format.mime_type,'application/json');
     return {ok:true,json:async()=>({status:'completed',steps:[{type:'thought',content:[{type:'text',text:'private'}]},{type:'model_output',content:[{type:'text',text:JSON.stringify({status:'abstained'})}]}]})};
   };
   try { assert.equal((await require('../lib/rag/provider').generate('{}')).status,'abstained'); }
+  finally { global.fetch=oldFetch; if(oldKey===undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY=oldKey; }
+});
+test('provider reports bounded timeout without leaking request data',async()=>{
+  const oldFetch=global.fetch; const oldKey=process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY='test-key';
+  global.fetch=async()=>{ const error=new Error('secret prompt and key'); error.name='TimeoutError'; throw error; };
+  try { await assert.rejects(require('../lib/rag/provider').generate('private input'), /PROVIDER_TIMEOUT/); }
   finally { global.fetch=oldFetch; if(oldKey===undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY=oldKey; }
 });

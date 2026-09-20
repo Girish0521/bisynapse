@@ -17,7 +17,7 @@ async function answer(query, { language='en', history=[] } = {}, provider=genera
   if (/huid|hallmark|steel|kettle|charger/i.test(query)) return message('That product is outside the captured water-sector corpus. I cannot verify its requirements from these sources.', 'abstained');
   if (/which.*standard|standard.*appl|what.*standard/i.test(query) && !/packaged|natural|mineral|14543|13428/i.test(full)) return message('Do you mean bottled packaged drinking water, natural mineral water, or a water purifier?', 'clarification');
   let evidence;
-  try { evidence = retrieve(full); } catch { return message('The source corpus is unavailable or failed integrity checks. No answer was generated.', 'corpus_unavailable'); }
+  try { evidence = retrieve(full, 3); } catch { return message('The source corpus is unavailable or failed integrity checks. No answer was generated.', 'corpus_unavailable'); }
   if (!evidence.length) return message('I could not find enough matching evidence in the captured documents. Please specify the product, IS number and the requirement you want to check.', 'abstained');
   let feedback;
   for (let attempt=0; attempt<2; attempt++) {
@@ -25,6 +25,7 @@ async function answer(query, { language='en', history=[] } = {}, provider=genera
     try { value = await provider(prompt(query,recent,language,evidence,feedback)); }
     catch (error) {
       if (error instanceof SyntaxError) { feedback = 'Return valid JSON matching the response schema.'; continue; }
+      console.warn('RAG provider unavailable:', error instanceof Error ? error.message : 'PROVIDER_UNKNOWN_ERROR');
       return message('The language model is unavailable or not configured. Retrieved passages are available below, but no AI answer or verification was generated.', 'provider_unavailable', evidence.slice(0,3).map(source));
     }
     feedback = validateAnswer(value,evidence);
