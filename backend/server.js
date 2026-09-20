@@ -9,6 +9,7 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./lib/db');
 const { answer } = require('./lib/rag/assistant');
+const { responseCache } = require('./lib/rag/responseCache');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -325,7 +326,8 @@ app.post('/api/chat', async (req, res) => {
         !Array.isArray(history) || history.length > 4 || history.some(h => !h || !['user','assistant'].includes(h.role) || typeof h.text !== 'string' || h.text.length > 2000)) {
       return res.status(400).json({ error: 'Provide a question up to 2000 characters, supported language, and at most four bounded conversation messages.' });
     }
-    const response = await answer(q.trim(), { language, history });
+    const options = { language, history };
+    const response = await responseCache.run(q.trim(), options, () => answer(q.trim(), options));
     res.json(response);
   } catch (err) {
     console.error('[/api/chat] Error:', err);
