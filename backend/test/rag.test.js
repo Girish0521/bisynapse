@@ -69,3 +69,19 @@ test('provider reports bounded timeout without leaking request data',async()=>{
   try { await assert.rejects(require('../lib/rag/provider').generate('private input'), /PROVIDER_TIMEOUT/); }
   finally { global.fetch=oldFetch; if(oldKey===undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY=oldKey; }
 });
+test('provider retries one transient service failure',async()=>{
+  const oldFetch=global.fetch; const oldKey=process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY='test-key'; let calls=0;
+  global.fetch=async()=>++calls===1
+    ? {ok:false,status:503,json:async()=>({error:{status:'UNAVAILABLE'}})}
+    : {ok:true,json:async()=>({status:'completed',steps:[{type:'model_output',content:[{type:'text',text:JSON.stringify({status:'abstained'})}]}]})};
+  try { assert.equal((await require('../lib/rag/provider').generate('{}')).status,'abstained'); assert.equal(calls,2); }
+  finally { global.fetch=oldFetch; if(oldKey===undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY=oldKey; }
+});
+test('provider does not retry quota failures',async()=>{
+  const oldFetch=global.fetch; const oldKey=process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY='test-key'; let calls=0;
+  global.fetch=async()=>{calls++; return {ok:false,status:429,json:async()=>({error:{status:'RESOURCE_EXHAUSTED'}})};};
+  try { await assert.rejects(require('../lib/rag/provider').generate('{}'), /PROVIDER_HTTP_429_RESOURCE_EXHAUSTED/); assert.equal(calls,1); }
+  finally { global.fetch=oldFetch; if(oldKey===undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY=oldKey; }
+});
