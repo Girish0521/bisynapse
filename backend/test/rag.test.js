@@ -22,6 +22,20 @@ test('unsupported product with water history abstains', async () => {
   const result = await answer('What about a kettle?', {history:[{role:'user',text:query}]}, () => { throw Error('Should not call'); });
   assert.equal(result.ragStatus,'abstained');
 });
+test('Hindi and Telugu water-testing terms retrieve FSSAI evidence', async () => {
+  for (const [query, language] of [
+    ['FSSAI जल परीक्षण योजना में क्या शामिल है?', 'hi'],
+    ['FSSAI నీరు పరీక్ష పథకంలో ఏమి ఉంది?', 'te'],
+  ]) {
+    let citations;
+    const result = await answer(query, {language}, input => {
+      const parsed=JSON.parse(input); citations=parsed.evidence.map(e=>e.citation);
+      return valid(input);
+    });
+    assert.equal(result.ragStatus,'answered');
+    assert.ok(citations.some(citation => citation.startsWith('fssai-testing-20251217')));
+  }
+});
 test('invalid citation is repaired exactly once', async () => {
   let calls=0;
   const result = await answer(query, {}, input => {

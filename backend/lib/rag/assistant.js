@@ -7,6 +7,17 @@ function message(text, status, sources = [], extra = {}) {
     ragStatus:status, isPrototypeNotice:true, ...extra };
 }
 const crypto = require('node:crypto');
+function retrievalAliases(text) {
+  const aliases = [];
+  if (/पानी|जल|నీరు|నీళ్ళు/i.test(text)) aliases.push('water');
+  if (/परीक्षण|जाँच|पరీక్ష|పరీక్షలు/i.test(text)) aliases.push('testing test');
+  if (/योजना|स्कीम|పథకం|స్కీమ్/i.test(text)) aliases.push('scheme');
+  if (/खनिज|मिनरल|మినరల్|ఖనిజ/i.test(text)) aliases.push('mineral');
+  if (/पैकेज्ड|बोतलबंद|ప్యాకేజ్డ్|సీసా/i.test(text)) aliases.push('packaged drinking');
+  if (!aliases.length) return text;
+  const identifiers = text.match(/\b(?:FSSAI|BIS|IS\s*\d+)\b/gi) || [];
+  return `${identifiers.join(' ')} ${aliases.join(' ')}`.trim();
+}
 async function answer(query, { language='en', history=[] } = {}, provider=generate) {
   const recent = history.slice(-4);
   const context = recent.filter(h => h.role === 'user').map(h => h.text).join(' ');
@@ -17,7 +28,7 @@ async function answer(query, { language='en', history=[] } = {}, provider=genera
   if (/huid|hallmark|steel|kettle|charger/i.test(query)) return message('That product is outside the captured water-sector corpus. I cannot verify its requirements from these sources.', 'abstained');
   if (/which.*standard|standard.*appl|what.*standard/i.test(query) && !/packaged|natural|mineral|14543|13428/i.test(full)) return message('Do you mean bottled packaged drinking water, natural mineral water, or a water purifier?', 'clarification');
   let evidence;
-  try { evidence = retrieve(full, 3); } catch { return message('The source corpus is unavailable or failed integrity checks. No answer was generated.', 'corpus_unavailable'); }
+  try { evidence = retrieve(retrievalAliases(full), 3); } catch { return message('The source corpus is unavailable or failed integrity checks. No answer was generated.', 'corpus_unavailable'); }
   if (!evidence.length) return message('I could not find enough matching evidence in the captured documents. Please specify the product, IS number and the requirement you want to check.', 'abstained');
   let feedback;
   for (let attempt=0; attempt<2; attempt++) {
